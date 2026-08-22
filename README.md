@@ -13,7 +13,9 @@
 
 **Engineered with passion by `GᕼOᔕTᗰEOᗯ`**
 
-*58 security modules. One terminal. AI-powered analysis. Cloud-isolated execution.*
+<img width="1180" height="914" alt="Screenshot 2026-08-22 202529" src="https://github.com/user-attachments/assets/23d2f7c9-584d-4fa4-a3c3-f632071ed759" />
+
+*71 security modules. One terminal. AI-powered analysis. Cloud-isolated execution.*
 
 </div>
 
