@@ -88,6 +88,9 @@ Deploy decoy links to capture attacker intelligence for **defensive incident res
 | **Threat Intelligence** | Incident Response • Threat Intel Feed • IOC Scanner • YARA Generator • Dark Web Monitor • SE Toolkit • Rev Shell Gen • Email Sec Audit |
 | **Advanced Operations** | DDoS Advisor • Backup Verify • Ransomware Check • Malware Sandbox • System Health • Steganography |
 | **System & Credits** | Help & Manual • Exit • Threat Tracker • Developer Info |
+| **Live Threat Intelligence** | VirusTotal Look • Deep IP Intel • AbuseIPDB Check • NVD CVE Lookup • HIBP Pass Check |
+| **Bug Bounty & Pentest** | Subdomain TKO • WAF Detector • WP/CMS Scanner • Recon Pipeline • Nuclei Scan |
+| **Pro Workflow & Reporting** | CVSS Calculator • Pentest Report • Local AI Ollama |
 
 ---
 
