@@ -299,6 +299,28 @@ MENU_TRACKER = [
     ("57", RED,     "Threat Tracker"),
 ]
 
+MENU_LIVE_INTEL = [
+    ("59", RED,     "VirusTotal Look"),
+    ("60", GREEN,   "Deep IP Intel"),
+    ("61", YELLOW,  "AbuseIPDB Check"),
+    ("62", BLUE,    "NVD CVE Lookup"),
+    ("63", MAGENTA, "HIBP Pass Check"),
+]
+
+MENU_BOUNTY = [
+    ("64", CYAN,    "Subdomain TKO"),
+    ("65", RED,     "WAF Detector"),
+    ("66", GREEN,   "WP/CMS Scanner"),
+    ("67", YELLOW,  "Recon Pipeline"),
+    ("68", BLUE,    "Nuclei Scan"),
+]
+
+MENU_PROWORK = [
+    ("69", MAGENTA, "CVSS Calculator"),
+    ("70", CYAN,    "Pentest Report"),
+    ("71", GREEN,   "Local AI Ollama"),
+]
+
 MENU_CREDITS = [
     ("58", CYAN,    "Developer Info"),
 ]
@@ -331,20 +353,20 @@ def show_menu():
     for line in render_columns(MENU_CLOUD, 4).split('\n'):
         print(box_line(' ' + line))
     print(box_mid())
-    print(box_line(f"  {BOLD}{YELLOW}[ THREAT INTELLIGENCE ]{RESET}"))
-    for line in render_columns(MENU_INTEL, 4).split('\n'):
-        print(box_line(' ' + line))
-    print(box_mid())
-    print(box_line(f"  {BOLD}{YELLOW}[ ADVANCED OPERATIONS ]{RESET}"))
-    for line in render_columns(MENU_ADVANCED, 4).split('\n'):
-        print(box_line(' ' + line))
-    print(box_mid())
-    print(box_line(f"  {BOLD}{YELLOW}[ SYSTEM ]{RESET}"))
-    for line in render_columns(MENU_SYSTEM, 4).split('\n'):
-        print(box_line(' ' + line))
-    print(box_mid())
-    print(box_line(f"  {BOLD}{YELLOW}[ THREAT INTELLIGENCE & TRACKING ]{RESET}"))
+    print(box_line(f"  {BOLD}{YELLOW}[ THREAT INTELLIGENCE & TRACKING ]{RESET}  "))
     for line in render_columns(MENU_TRACKER, 4).split('\n'):
+        print(box_line(' ' + line))
+    print(box_mid())
+    print(box_line(f"  {BOLD}{YELLOW}[ LIVE THREAT INTELLIGENCE APIs ]{RESET}  "))
+    for line in render_columns(MENU_LIVE_INTEL, 4).split('\n'):
+        print(box_line(' ' + line))
+    print(box_mid())
+    print(box_line(f"  {BOLD}{YELLOW}[ BUG BOUNTY & PENTEST POWER ]{RESET}  "))
+    for line in render_columns(MENU_BOUNTY, 4).split('\n'):
+        print(box_line(' ' + line))
+    print(box_mid())
+    print(box_line(f"  {BOLD}{YELLOW}[ PRO WORKFLOW & REPORTING ]{RESET}  "))
+    for line in render_columns(MENU_PROWORK, 4).split('\n'):
         print(box_line(' ' + line))
     print(box_mid())
     print(box_line(f"  {BOLD}{YELLOW}[ CREDITS & DEVELOPER INFO ]{RESET}  "))
@@ -2721,6 +2743,25 @@ def print_general_help():
     print(f"{BOLD}53. System Health Audit:{RESET} Full system security posture assessment.")
     print(f"{BOLD}54. Steganography Analyzer:{RESET} Detect hidden data in files and images.")
 
+    print(f"\n{BOLD}{BLUE}Credits{RESET}")
+    print(f"{BOLD}58. Developer Info:{RESET} Project creator, Discord ID and community links.")
+    print(f"\n{BOLD}{BLUE}Live Threat Intelligence APIs{RESET}")
+    print(f"{BOLD}59. VirusTotal Lookup:{RESET} Hash/IP/domain/URL reputation from 70+ engines (free API key).")
+    print(f"{BOLD}60. Deep IP Intel:{RESET} Advanced IP lookup with ASN, Proxy/VPN detection (100% Free, no key).")
+    print(f"{BOLD}61. AbuseIPDB Check:{RESET} IP abuse confidence score & reports (free API key).")
+    print(f"{BOLD}62. NVD CVE Lookup:{RESET} REAL CVE data + CVSS scores from NIST (no key needed).")
+    print(f"{BOLD}63. HIBP Pass Check:{RESET} Checks if a password appeared in known breaches (private).")
+    print(f"\n{BOLD}{BLUE}Bug Bounty & Pentest Power{RESET}")
+    print(f"{BOLD}64. Subdomain TKO:{RESET} Detects dangling CNAMEs for subdomain takeover bugs.")
+    print(f"{BOLD}65. WAF Detector:{RESET} Identifies Cloudflare/Akamai/Sucuri + payload blocking.")
+    print(f"{BOLD}66. WP/CMS Scanner:{RESET} WordPress version, plugins, xmlrpc & readme exposure.")
+    print(f"{BOLD}67. Recon Pipeline:{RESET} One-command recon: subdomains -> live hosts -> takeover + AI.")
+    print(f"{BOLD}68. Nuclei Scan:{RESET} Runs Nuclei (1000+ vuln templates) in cloud sandbox.")
+    print(f"\n{BOLD}{BLUE}Pro Workflow & Reporting{RESET}")
+    print(f"{BOLD}69. CVSS Calculator:{RESET} Computes CVSS 3.1 base score & severity from vector.")
+    print(f"{BOLD}70. Pentest Report:{RESET} Professional HTML report from session findings + notes.")
+    print(f"{BOLD}71. Local AI Ollama:{RESET} Private offline AI analysis (no data leaves your PC).")
+
     print(f"\n{CYAN}{BOLD}--- WHAT CAN YOU DO WITH A TARGET'S IP? ---{RESET}")
     print(f"{BOLD}Server Identification:{RESET} Identify server software and stack.")
     print(f"{BOLD}Geo-Location:{RESET} Find physical hosting location.")
@@ -3231,6 +3272,559 @@ def show_developer_info():
     print(f"   {CYAN}https://discord.gg/MayErj6NPf{RESET}")
     print()
 
+# ==================================================
+# NETHERX v5.0 PRO PACK - LIVE INTEL / BOUNTY / PRO WORKFLOW
+# ==================================================
+REPORT_FINDINGS = []
+
+def log_finding(module, severity, detail):
+    REPORT_FINDINGS.append({'time': datetime.now(timezone.utc).isoformat(),
+                            'module': module, 'severity': severity, 'detail': detail})
+
+def get_optional_key(key_name, hint_url):
+    cfg = load_config()
+    key = cfg.get(key_name, '')
+    if key:
+        return key
+    print_info(f'No {key_name} saved. Free key: {hint_url}')
+    key = get_input(f"{BOLD}Paste your {key_name} (Enter = cancel): {RESET}")
+    if not key:
+        return None
+    sv = get_input(f"{BOLD}Save key for next time? (y/n): {RESET}")
+    if sv and sv.lower() == 'y':
+        cfg[key_name] = key
+        save_config(cfg)
+        print_success('Key saved to config.')
+    return key
+
+def _http_json(url, headers=None, timeout=20):
+    req = urllib.request.Request(url, headers=headers or {'User-Agent': 'NetherX/5.0'})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode('utf-8', errors='ignore'))
+
+# ---------- 59. VIRUSTOTAL ----------
+def virustotal_lookup():
+    key = get_optional_key('virustotal_api_key', 'https://www.virustotal.com/gui/sign-in')
+    if not key: return
+    ioc = get_input(f"{BOLD}Enter hash / IP / domain / URL: {RESET}")
+    if not ioc: print_error('No IOC entered.'); return
+    h = {'x-apikey': key, 'User-Agent': 'NetherX/5.0'}
+    try:
+        if re.fullmatch(r'[0-9a-fA-F]{32,64}', ioc):
+            url = f'https://www.virustotal.com/api/v3/files/{ioc}'
+        elif validate_ip(ioc):
+            url = f'https://www.virustotal.com/api/v3/ip_addresses/{ioc}'
+        elif ioc.startswith('http'):
+            vid = base64.urlsafe_b64encode(ioc.encode()).decode().rstrip('=')
+            url = f'https://www.virustotal.com/api/v3/urls/{vid}'
+        else:
+            url = f'https://www.virustotal.com/api/v3/domains/{ioc}'
+        att = _http_json(url, h).get('data', {}).get('attributes', {})
+        stats = att.get('last_analysis_stats', {})
+        print_section('VIRUSTOTAL REPORT')
+        print(f' Reputation: {att.get("reputation", "N/A")}')
+        if stats:
+            print(f' Malicious:  {RED}{stats.get("malicious", 0)}{RESET} | Suspicious: {stats.get("suspicious", 0)} | Harmless: {stats.get("harmless", 0)}')
+        mal = stats.get('malicious', 0)
+        log_finding('VirusTotal', 'CRITICAL' if mal >= 5 else 'HIGH' if mal > 0 else 'LOW',
+                    f'{ioc} flagged malicious by {mal} vendors' if mal else f'{ioc} clean on VirusTotal')
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            print_error(f'404 Not Found: VirusTotal ne is IOC ko apne database mein nahi dekha. (Ya URL format check karein).')
+        elif e.code in (401, 403):
+            print_error(f'API Key Invalid ya expired. Please check your VT key.')
+        elif e.code == 429:
+            print_error(f'Rate limit hit. Free VT keys allow 4 requests/minute. Wait 60 seconds.')
+        else:
+            print_error(f'VirusTotal API error {e.code}.')
+    except Exception as e:
+        print_error(f'VirusTotal lookup failed: {e}')
+
+# ---------- 60. SHODAN ----------
+def deep_ip_intel():
+    target = get_input(f"{BOLD}Enter IP address or Domain (e.g., 45.33.32.156): {RESET}")
+    if not target: print_error('No target.'); return
+    
+    # Auto-resolve domain to IP if needed
+    if not validate_ip(target):
+        print_info(f'Resolving {target} to IP...')
+        try:
+            import socket
+            target = socket.gethostbyname(target)
+            print_success(f'Resolved to: {target}')
+        except Exception:
+            print_error('Could not resolve domain.'); return
+
+    print_info(f'Gathering deep intelligence on {target} (No API key needed)...')
+    try:
+        # ip-api.com (Free, rich data, proxy detection)
+        url1 = f"http://ip-api.com/json/{target}?fields=status,message,country,countryCode,regionName,city,lat,lon,isp,org,as,asname,proxy,hosting,query"
+        data1 = _http_json(url1)
+        
+        # ipinfo.io (Free, good for ASN/Company)
+        url2 = f"https://ipinfo.io/{target}/json"
+        data2 = _http_json(url2)
+
+        print_section(f'DEEP IP INTELLIGENCE: {target}')
+        if data1.get('status') == 'success':
+            print(f' Location:  {data1.get("city")}, {data1.get("regionName")}, {data1.get("country")}')
+            print(f' Coords:    {data1.get("lat")}, {data1.get("lon")}')
+            print(f' ISP:       {data1.get("isp")}')
+            print(f' Org:       {data1.get("org")}')
+            print(f' ASN:       {data1.get("as")} ({data1.get("asname")})')
+            proxy = data1.get("proxy") or data1.get("hosting")
+            print(f' Proxy/VPN: {RED}YES (Hosting/Proxy detected){RESET}' if proxy else f' Proxy/VPN: {GREEN}NO (Residential/Corporate){RESET}')
+        else:
+            print_warn('Primary lookup failed.')
+            
+        if 'hostname' in data2:
+            print(f' Hostname:  {data2.get("hostname")}')
+        if 'company' in data2:
+            print(f' Company:   {data2.get("company", {}).get("name")}')
+            
+        log_finding('IP Intel', 'INFO', f'{target} analyzed: {data1.get("isp", "Unknown ISP")}')
+    except Exception as e:
+        print_error(f'IP Intel failed: {e}')
+
+# ---------- 61. ABUSEIPDB ----------
+def abuseipdb_check():
+    key = get_optional_key('abuseipdb_api_key', 'https://www.abuseipdb.com/register')
+    if not key: return
+    ip = get_input(f"{BOLD}Enter IP address: {RESET}")
+    if not validate_ip(ip): print_error('Invalid IP.'); return
+    try:
+        data = _http_json(f'https://api.abuseipdb.com/api/v2/check?ipAddress={ip}&maxAgeInDays=90',
+                          {'Key': key, 'Accept': 'application/json', 'User-Agent': 'NetherX/5.0'})
+        d = data.get('data', {})
+        score = d.get('abuseConfidenceScore', 0)
+        color = GREEN if score < 20 else YELLOW if score < 60 else RED
+        print_section('ABUSEIPDB REPORT')
+        print(f' Abuse Confidence: {color}{score}%{RESET} | Reports: {d.get("totalReports", 0)}')
+        print(f' Country: {d.get("countryCode", "?")} | ISP: {d.get("isp", "?")} | Type: {d.get("usageType", "?")}')
+        if score >= 60:
+            log_finding('AbuseIPDB', 'HIGH', f'{ip} abuse confidence {score}%')
+    except Exception as e:
+        print_error(f'AbuseIPDB check failed: {e}')
+
+# ---------- 62. NVD (LIVE, NO KEY) ----------
+def nvd_cve_lookup():
+    kw = get_input(f"{BOLD}Enter CVE ID or keyword (CVE-2021-44228 / apache): {RESET}")
+    if not kw: print_error('No keyword.'); return
+    print_info('Querying NIST NVD (live data)...')
+    try:
+        if kw.upper().startswith('CVE-'):
+            url = f'https://services.nvd.nist.gov/rest/json/cves/2.0?cveId={kw.upper()}'
+        else:
+            url = f'https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch={urllib.parse.quote(kw)}&resultsPerPage=5'
+        data = _http_json(url, timeout=30)
+        print_section(f'NVD RESULTS ({data.get("totalResults", 0)} total)')
+        for v in data.get('vulnerabilities', [])[:5]:
+            cve = v.get('cve', {})
+            desc = next((d['value'] for d in cve.get('descriptions', []) if d['lang'] == 'en'), 'No description')
+            cvss = ((cve.get('metrics', {}).get('cvssMetricV31') or cve.get('metrics', {}).get('cvssMetricV30') or [{}])[0])
+            print(f' {BOLD}{cve.get("id")}{RESET} | CVSS {cvss.get("cvssData",{}).get("baseScore","N/A")} ({cvss.get("cvssData",{}).get("baseSeverity","N/A")})')
+            print(f'   {desc[:150]}')
+    except Exception as e:
+        print_error(f'NVD lookup failed (rate limit? retry): {e}')
+
+# ---------- 63. HIBP PASSWORD ----------
+def hibp_password_check():
+    pwd = get_input(f"{BOLD}Enter password (only hashed prefix is sent - private): {RESET}")
+    if not pwd: print_error('No password.'); return
+    sha1 = hashlib.sha1(pwd.encode()).hexdigest().upper()
+    try:
+        req = urllib.request.Request(f'https://api.pwnedpasswords.com/range/{sha1[:5]}', headers={'User-Agent': 'NetherX/5.0'})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            body = resp.read().decode()
+        count = 0
+        for line in body.splitlines():
+            if ':' in line and line.strip().split(':')[0] == sha1[5:]:
+                count = int(line.strip().split(':')[1])
+                break
+        print_section('HAVE I BEEN PWNED CHECK')
+        if count > 0:
+            print(f' {RED}[!] Password appeared {count:,} times in known breaches. DO NOT USE.{RESET}')
+            log_finding('HIBP', 'HIGH', f'Password found {count} times in breaches')
+        else:
+            print(f' {GREEN}[+] Password not found in known breaches.{RESET}')
+    except Exception as e:
+        print_error(f'HIBP check failed: {e}')
+
+# ---------- 64. SUBDOMAIN TAKEOVER ----------
+TAKEOVER_SERVICES = ['github.io','herokuapp.com','shopify.com','azurewebsites.net','cloudfront.net',
+                     'fastly.net','s3.amazonaws.com','tumblr.com','unbouncepages.com','wordpress.com',
+                     'fly.io','netlify.app','readthedocs.io','ghost.io']
+
+def subdomain_takeover_detector(sandbox):
+    domain = safe_domain(get_input(f"{BOLD}Enter root domain: {RESET}"))
+    if not validate_domain(domain): return
+    try: sandbox.process.exec('apt-get install -y dnsutils > /dev/null 2>&1')
+    except Exception: pass
+    print_info('Fetching subdomains + CNAME takeover analysis...')
+    script = f"""
+import json, socket, subprocess, urllib.request
+domain = {json.dumps(domain)}
+subs = set()
+try:
+    url = 'https://crt.sh/?q=%25.' + domain + '&output=json'
+    req = urllib.request.Request(url, headers={{'User-Agent': 'NetherX/5.0'}})
+    with urllib.request.urlopen(req, timeout=25) as resp:
+        for e in json.loads(resp.read().decode(errors='ignore')):
+            for n in e.get('name_value', '').split('\\n'):
+                n = n.strip().lower()
+                if n and n.endswith(domain) and ' ' not in n:
+                    subs.add(n)
+except Exception as ex:
+    print('[!] crt.sh failed: ' + str(ex))
+services = {json.dumps(TAKEOVER_SERVICES)}
+print('--- SUBDOMAIN TAKEOVER SCAN ---')
+print('Subdomains found: ' + str(len(subs)))
+for s in sorted(subs)[:40]:
+    try:
+        r = subprocess.run(['dig', '+short', 'CNAME', s], capture_output=True, text=True, timeout=5)
+        cname = r.stdout.strip().splitlines()[0].rstrip('.') if r.stdout.strip() else ''
+        if not cname:
+            continue
+        for svc in services:
+            if cname.endswith(svc):
+                try:
+                    socket.gethostbyname(s)
+                    print('[~] ' + s + ' -> ' + cname + ' (resolves, likely claimed)')
+                except Exception:
+                    print('[!] VULNERABLE? ' + s + ' -> ' + cname + ' (NXDOMAIN = dangling CNAME)')
+    except Exception:
+        continue
+print('[OK] Takeover scan complete.')
+"""
+    output = run_remote_python(sandbox, script)
+    print(f"\n{YELLOW}{output}{RESET}")
+    if 'VULNERABLE?' in output:
+        log_finding('Subdomain Takeover', 'CRITICAL', f'{domain}: dangling CNAME detected')
+
+# ---------- 65. WAF DETECTOR ----------
+def waf_detector(sandbox):
+    target = safe_domain(get_input(f"{BOLD}Enter target domain: {RESET}"))
+    if not validate_domain(target): return
+    script = f"""
+import urllib.request, urllib.error
+target = {json.dumps(target)}
+waf_signs = {{'cf-ray': 'Cloudflare', 'x-sucuri-id': 'Sucuri', 'akamai': 'Akamai', 'x-varnish': 'Varnish',
+'imperva': 'Imperva', 'f5': 'F5 BIG-IP', 'mod_security': 'ModSecurity', 'wordfence': 'Wordfence', 'x-cdn': 'CDN WAF'}}
+def get(url):
+    try:
+        req = urllib.request.Request(url, headers={{'User-Agent': 'NetherX/5.0'}})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return r.status, dict(r.getheaders())
+    except urllib.error.HTTPError as e:
+        return e.code, dict(e.headers or {{}})
+    except Exception:
+        return None, {{}}
+print('--- WAF DETECTION ---')
+s1, h1 = get('https://' + target)
+s2, h2 = get('https://' + target + '/?id=%27%22%3E%3Cscript%3Ealert(1)%3C/script%3E')
+print('Normal request:  ' + str(s1))
+print('Payload request: ' + str(s2))
+detected = []
+for k, v in {{str(a).lower(): str(b).lower() for a, b in (h1 or {{}}).items()}}.items():
+    for sig, name in waf_signs.items():
+        if sig in k or sig in v:
+            detected.append(name)
+if s1 == 200 and s2 in (403, 406, 429):
+    detected.append('Behavioral block (payload rejected)')
+if detected:
+    for d in sorted(set(detected)):
+        print('[+] WAF/CDN detected: ' + d)
+else:
+    print('[~] No WAF signatures detected.')
+"""
+    output = run_remote_python(sandbox, script)
+    print(f"\n{YELLOW}{output}{RESET}")
+    if 'No WAF signatures' in output:
+        log_finding('WAF Detector', 'INFO', f'{target}: no WAF detected')
+
+# ---------- 66. WP/CMS SCANNER ----------
+def wp_cms_scanner(sandbox):
+    target = safe_domain(get_input(f"{BOLD}Enter target domain: {RESET}"))
+    if not validate_domain(target): return
+    script = f"""
+import urllib.request, urllib.error, re
+target = {json.dumps(target)}
+def fetch(path):
+    try:
+        req = urllib.request.Request('https://' + target + path, headers={{'User-Agent': 'NetherX/5.0'}})
+        with urllib.request.urlopen(req, timeout=8) as r:
+            return r.status, r.read(20000).decode(errors='ignore')
+    except urllib.error.HTTPError as e:
+        return e.code, ''
+    except Exception:
+        return None, ''
+print('--- CMS / WORDPRESS SCAN ---')
+s, body = fetch('/')
+wp = False
+if s == 200:
+    if '/wp-content/' in body or 'wp-json' in body:
+        wp = True
+    m = re.search(r'content="WordPress ([0-9.]+)"', body)
+    if m:
+        wp = True
+        print('[+] WordPress version: ' + m.group(1))
+if fetch('/wp-login.php')[0] == 200:
+    wp = True
+    print('[+] wp-login.php accessible')
+if fetch('/xmlrpc.php')[0] in (200, 405):
+    print('[!] xmlrpc.php enabled (brute-force/amplification risk)')
+if fetch('/readme.html')[0] == 200:
+    print('[!] readme.html exposed (version disclosure)')
+for p in ['woocommerce', 'elementor', 'contact-form-7', 'wordfence', 'yoast-seo']:
+    s5, b5 = fetch('/wp-content/plugins/' + p + '/readme.txt')
+    if s5 == 200:
+        vm = re.search(r'Stable tag: ([0-9.]+)', b5)
+        print('[+] Plugin: ' + p + (' v' + vm.group(1) if vm else ''))
+if not wp:
+    print('[~] No WordPress signatures found.')
+"""
+    output = run_remote_python(sandbox, script)
+    print(f"\n{YELLOW}{output}{RESET}")
+
+# ---------- 67. RECON PIPELINE ----------
+def recon_pipeline(sandbox):
+    target = safe_domain(get_input(f"{BOLD}Enter root domain for full recon: {RESET}"))
+    if not validate_domain(target): return
+    try: sandbox.process.exec('apt-get install -y dnsutils > /dev/null 2>&1')
+    except Exception: pass
+    print_info('Pipeline: subdomains -> live check -> takeover check...')
+    script = f"""
+import json, socket, subprocess, urllib.request, urllib.error
+domain = {json.dumps(target)}
+subs = set()
+try:
+    url = 'https://crt.sh/?q=%25.' + domain + '&output=json'
+    req = urllib.request.Request(url, headers={{'User-Agent': 'NetherX/5.0'}})
+    with urllib.request.urlopen(req, timeout=25) as resp:
+        for e in json.loads(resp.read().decode(errors='ignore')):
+            for n in e.get('name_value', '').split('\\n'):
+                n = n.strip().lower()
+                if n and n.endswith(domain) and ' ' not in n:
+                    subs.add(n)
+except Exception as ex:
+    print('[!] subdomain fetch failed: ' + str(ex))
+print('--- RECON PIPELINE: ' + domain + ' ---')
+print('[1] Subdomains found: ' + str(len(subs)))
+services = {json.dumps(TAKEOVER_SERVICES)}
+live = 0
+for s in sorted(subs)[:20]:
+    try:
+        ip = socket.gethostbyname(s)
+    except Exception:
+        continue
+    status = '?'
+    try:
+        req = urllib.request.Request('https://' + s, headers={{'User-Agent': 'NetherX/5.0'}})
+        with urllib.request.urlopen(req, timeout=6) as r:
+            status = str(r.status)
+    except urllib.error.HTTPError as e:
+        status = str(e.code)
+    except Exception:
+        status = 'timeout'
+    live += 1
+    line = '[2] LIVE ' + s + ' (' + ip + ') HTTP ' + status
+    try:
+        r = subprocess.run(['dig', '+short', 'CNAME', s], capture_output=True, text=True, timeout=5)
+        cname = r.stdout.strip().splitlines()[0].rstrip('.') if r.stdout.strip() else ''
+        if cname:
+            for svc in services:
+                if cname.endswith(svc):
+                    line += ' | CNAME -> ' + cname + ' (takeover check!)'
+    except Exception:
+        pass
+    print(line)
+print('[3] Live hosts: ' + str(live))
+print('[OK] Pipeline complete.')
+"""
+    output = run_remote_python(sandbox, script)
+    print(f"\n{YELLOW}{output}{RESET}")
+    try:
+        prompt = f"Recon pipeline results for {target}:\n\n{output}\n\nHighlight the most interesting targets for authorized testing."
+        ai_assess(prompt)
+    except Exception as e:
+        print_error(f'AI analysis failed: {e}')
+
+# ---------- 68. NUCLEI SCAN ----------
+def nuclei_scan(sandbox):
+    target = safe_domain(get_input(f"{BOLD}Enter target domain for Nuclei: {RESET}"))
+    if not validate_domain(target): return
+    print_info('Fetching latest Nuclei release via GitHub API & installing in sandbox...')
+    
+    install_script = """
+import urllib.request, zipfile, os, platform, json
+
+print('[*] Fetching latest Nuclei release info...')
+try:
+    req = urllib.request.Request('https://api.github.com/repos/projectdiscovery/nuclei/releases/latest', headers={'User-Agent': 'NetherX/5.0'})
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        release = json.loads(resp.read().decode())
+    
+    arch = platform.machine()
+    target_name = 'linux_arm64' if ('arm' in arch or 'aarch64' in arch) else 'linux_amd64'
+        
+    download_url = ''
+    for asset in release.get('assets', []):
+        if target_name in asset['name'] and asset['name'].endswith('.zip'):
+            download_url = asset['browser_download_url']
+            break
+            
+    if not download_url:
+        print('[!] Could not find Nuclei download URL.')
+        exit(1)
+        
+    print('[*] Downloading Nuclei from GitHub...')
+    req = urllib.request.Request(download_url, headers={'User-Agent': 'NetherX/5.0'})
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        with open('/tmp/nuclei.zip', 'wb') as f:
+            f.write(resp.read())
+            
+    print('[+] Download complete. Extracting...')
+    with zipfile.ZipFile('/tmp/nuclei.zip', 'r') as z:
+        z.extractall('/tmp')
+        
+    if os.path.exists('/tmp/nuclei'):
+        os.chmod('/tmp/nuclei', 0o755)
+    else:
+        for root, dirs, files in os.walk('/tmp'):
+            if 'nuclei' in files:
+                os.chmod(os.path.join(root, 'nuclei'), 0o755)
+                break
+    print('[+] Nuclei ready.')
+except Exception as e:
+    print('[!] Error: ' + str(e))
+    exit(1)
+"""
+    try:
+        install_out = run_remote_python(sandbox, install_script)
+        print(install_out)
+        if 'Nuclei ready' not in install_out:
+            print_error("Nuclei installation failed in sandbox.")
+            return
+    except Exception as e:
+        print_error(f"Install step failed: {e}")
+        return
+
+    print_info('Updating templates and running scan (this may take 1-2 mins)...')
+    try:
+        scan_cmd = "/tmp/nuclei -update-templates -silent && /tmp/nuclei -u https://" + target + " -severity critical,high,medium -nc -timeout 15 -c 25 2>&1 | tail -n 50"
+        res = sandbox.process.exec(scan_cmd)
+        output = res.result if hasattr(res, 'result') else str(res)
+    except Exception as e:
+        print_error(f"Nuclei scan failed: {e}")
+        return
+        
+    print_section('NUCLEI SCAN RESULTS')
+    clean_out = output.strip() if output else ''
+    if not clean_out or 'no results' in clean_out.lower() or len(clean_out) < 15:
+        print('(No critical/high/medium vulnerabilities found, or the target blocked us.)')
+    else:
+        print(clean_out)
+    if clean_out and 'critical' in clean_out.lower():
+        log_finding('Nuclei', 'CRITICAL', f'{target}: critical nuclei findings')
+
+# ---------- 69. CVSS 3.1 CALCULATOR ----------
+def cvss_calculator():
+    print(f"{YELLOW}Example full vector: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H{RESET}")
+    vec = get_input(f"{BOLD}Enter FULL CVSS 3.1 vector: {RESET}")
+    if not vec: print_error('No vector.'); return
+    vals = {}
+    for part in vec.replace('CVSS:3.1/', '').replace('CVSS:3.0/', '').split('/'):
+        if ':' in part:
+            k, v = part.split(':')
+            vals[k] = v
+    AV = {'N': 0.85, 'A': 0.62, 'L': 0.55, 'P': 0.20}
+    AC = {'L': 0.77, 'H': 0.44}
+    UI = {'N': 0.85, 'R': 0.62}
+    CIA = {'H': 0.56, 'L': 0.22, 'N': 0.0}
+    try:
+        required_keys = ['AV', 'AC', 'PR', 'UI', 'S', 'C', 'I', 'A']
+        missing = [k for k in required_keys if k not in vals]
+        if missing:
+            print_error(f"Invalid vector. Missing metrics: {', '.join(missing)}. Please paste the FULL vector string.")
+            return
+            
+        changed = vals.get('S') == 'C'
+        PR = ({'N': 0.85, 'L': 0.68, 'H': 0.50} if changed else {'N': 0.85, 'L': 0.62, 'H': 0.27})[vals['PR']]
+        isc = 1 - (1 - CIA[vals['C']]) * (1 - CIA[vals['I']]) * (1 - CIA[vals['A']])
+        impact = 6.42 * isc if not changed else 7.52 * (isc - 0.029) - 3.25 * (isc - 0.02) ** 15
+        expl = 8.22 * AV[vals['AV']] * AC[vals['AC']] * PR * UI[vals['UI']]
+        if impact <= 0:
+            score = 0.0
+        elif not changed:
+            score = math.ceil(min(impact + expl, 10) * 10) / 10
+        else:
+            score = math.ceil(min(1.08 * (impact + expl), 10) * 10) / 10
+        sev = 'None' if score == 0 else 'Low' if score < 4.0 else 'Medium' if score < 7.0 else 'High' if score < 9.0 else 'Critical'
+        color = GREEN if score < 4.0 else YELLOW if score < 7.0 else RED
+        print_section('CVSS 3.1 BASE SCORE')
+        print(f' Score:    {color}{BOLD}{score}{RESET}')
+        print(f' Severity: {color}{sev}{RESET}')
+    except KeyError as e:
+        print_error(f'Invalid metric value in vector. Check AV/AC/PR/UI/S/C/I/A values.')
+    except Exception as e:
+        print_error(f'Calculation failed: {e}')
+
+# ---------- 70. PENTEST REPORT GENERATOR ----------
+def pentest_report_generator():
+    target = get_input(f"{BOLD}Target/Project name: {RESET}") or 'Unnamed Engagement'
+    tester = get_input(f"{BOLD}Tester name: {RESET}") or 'GᕼOTᗰEO'
+    print(f'{BOLD}Paste extra notes/findings (type END to finish):{RESET}')
+    notes = []
+    while True:
+        line = get_input('')
+        if line is None or line.strip() == 'END':
+            break
+        notes.append(line)
+    out = os.path.join(os.path.expanduser('~'), f'netherx_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.html')
+    rows = ''
+    for f in REPORT_FINDINGS:
+        col = '#e74c3c' if f['severity'] in ('CRITICAL', 'HIGH') else '#f39c12' if f['severity'] == 'MEDIUM' else '#27ae60'
+        rows += f'<tr><td>{f["time"][:19]}</td><td>{f["module"]}</td><td style="color:{col};font-weight:bold">{f["severity"]}</td><td>{f["detail"]}</td></tr>'
+    html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>NetherX Pentest Report</title>
+<style>body{{font-family:Segoe UI,Arial;background:#0f1117;color:#eee;padding:40px}}h1{{color:#667eea}}table{{width:100%;border-collapse:collapse;margin-top:20px}}td,th{{border:1px solid #333;padding:8px;text-align:left;font-size:14px}}th{{background:#1c2030}}</style></head>
+<body><h1>🛡️ NetherX Penetration Test Report</h1>
+<p><b>Project:</b> {target}<br><b>Tester:</b> {tester}<br><b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M')}<br><b>Tool:</b> NetherX Cybersecurity Suite v5.0 Pro</p>
+<h2>Automated Findings ({len(REPORT_FINDINGS)})</h2>
+<table><tr><th>Time</th><th>Module</th><th>Severity</th><th>Finding</th></tr>{rows or '<tr><td colspan=4>No automated findings logged this session.</td></tr>'}</table>
+<h2>Analyst Notes</h2><p>{'<br>'.join(notes) if notes else 'No additional notes.'}</p>
+<p style="color:#888;margin-top:30px">Confidential - authorized recipients only. Developer: GᕼOᔕTᗰEOᗯ.</p></body></html>"""
+    try:
+        with open(out, 'w', encoding='utf-8') as f:
+            f.write(html)
+        print_success(f'HTML report saved: {out}')
+    except Exception as e:
+        print_error(f'Report generation failed: {e}')
+
+# ---------- 71. LOCAL AI (OLLAMA) ----------
+def local_ai_ollama():
+    print_info('Checking local Ollama at http://localhost:11434 ...')
+    try:
+        models = [m.get('name') for m in _http_json('http://localhost:11434/api/tags', timeout=5).get('models', [])]
+    except Exception:
+        print_error('Ollama not running. Install: https://ollama.com then: ollama pull llama3')
+        return
+    if not models:
+        print_error('No local models. Run: ollama pull llama3')
+        return
+    print_success(f'Local models: {", ".join(models)}')
+    model = get_input(f"{BOLD}Model (Enter = {models[0]}): {RESET}") or models[0]
+    q = get_input(f"{BOLD}Your security question: {RESET}")
+    if not q: return
+    print_info('Thinking locally (100% private - data leaves nothing)...')
+    try:
+        payload = json.dumps({'model': model, 'prompt': q, 'stream': False}).encode()
+        req = urllib.request.Request('http://localhost:11434/api/generate', data=payload, headers={'Content-Type': 'application/json'})
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            print(f"\n{YELLOW}--- OLLAMA RESPONSE ---{RESET}")
+            print(json.loads(resp.read().decode()).get('response', '(empty)'))
+    except Exception as e:
+        print_error(f'Ollama query failed: {e}')
+
 # ==========================================
 # MAIN LOOP
 # ==========================================
@@ -3238,7 +3832,7 @@ def show_developer_info():
 def main():
     while True:
         show_menu()
-        choice = get_input(f"{BOLD}Select an Option (1-58): {RESET}")
+        choice = get_input(f"{BOLD}Select an Option (1-71): {RESET}")
         if choice is None:
             print(f"\n{GREEN}[*] Exiting System. Stay Safe!{RESET}")
             sys.exit(0)
@@ -3272,7 +3866,7 @@ def main():
             continue
 
         # Options that don't need sandbox
-        no_sandbox_options = {'6', '11', '14', '15', '19', '20', '21', '22', '25', '26', '27', '28', '30', '33', '35', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '49', '50', '51', '54', '57'}
+        no_sandbox_options = {'6', '11', '14', '15', '19', '20', '21', '22', '25', '26', '27', '28', '30', '33', '35', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '49', '50', '51', '54', '57', '59', '60', '61', '62', '63', '69', '70', '71'}
 
         if choice in no_sandbox_options:
             try:
@@ -3340,6 +3934,22 @@ def main():
                     ransomware_readiness_check()
                 elif choice == '54':
                     steganography_analyzer()
+                elif choice == '60':
+                    deep_ip_intel()
+                elif choice == '59':
+                    virustotal_lookup()
+                elif choice == '61':
+                    abuseipdb_check()
+                elif choice == '62':
+                    nvd_cve_lookup()
+                elif choice == '63':
+                    hibp_password_check()
+                elif choice == '69':
+                    cvss_calculator()
+                elif choice == '70':
+                    pentest_report_generator()
+                elif choice == '71':
+                    local_ai_ollama()
             except Exception as e:
                 print_error(f'Option {choice} failed: {e}')
             press_enter()
@@ -3494,6 +4104,26 @@ def main():
                 sandbox = create_cloud_sandbox()
                 if sandbox:
                     full_system_health_audit(sandbox)
+            elif choice == '64':
+                sandbox = create_cloud_sandbox()
+                if sandbox:
+                    subdomain_takeover_detector(sandbox)
+            elif choice == '65':
+                sandbox = create_cloud_sandbox()
+                if sandbox:
+                    waf_detector(sandbox)
+            elif choice == '66':
+                sandbox = create_cloud_sandbox()
+                if sandbox:
+                    wp_cms_scanner(sandbox)
+            elif choice == '67':
+                sandbox = create_cloud_sandbox()
+                if sandbox:
+                    recon_pipeline(sandbox)
+            elif choice == '68':
+                sandbox = create_cloud_sandbox()
+                if sandbox:
+                    nuclei_scan(sandbox)
 
             else:
                 print(f"\n{RED}[!] Invalid choice! Try again.{RESET}")
