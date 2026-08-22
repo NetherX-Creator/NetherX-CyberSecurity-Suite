@@ -74,7 +74,7 @@ Deploy decoy links to capture attacker intelligence for **defensive incident res
 
 ---
 
-## 🧰 Full Module Arsenal (58 Modules)
+## 🧰 Full Module Arsenal (71 Modules)
 
 | Category | Modules |
 |---|---|
