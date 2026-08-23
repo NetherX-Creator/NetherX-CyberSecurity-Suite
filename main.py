@@ -2903,6 +2903,9 @@ def print_general_help():
     print(f"{BOLD}69. CVSS Calculator:{RESET} Computes CVSS 3.1 base score & severity from vector.")
     print(f"{BOLD}70. Pentest Report:{RESET} Professional HTML report from session findings + notes.")
     print(f"{BOLD}71. Local AI Ollama:{RESET} Private offline AI analysis (no data leaves your PC).")
+    print(f"\n{BOLD}{BLUE}Utility & Privacy{RESET}")
+    print(f"{BOLD}72. Encode/Decode Kit:{RESET} Base64, Hex, URL, ROT13, Binary & XOR tools (100% local).")
+    print(f"{BOLD}73. Update Checker:{RESET} Checks GitHub for the latest NetherX version (real update detection).")
 
     print(f"\n{CYAN}{BOLD}--- WHAT CAN YOU DO WITH A TARGET'S IP? ---{RESET}")
     print(f"{BOLD}Server Identification:{RESET} Identify server software and stack.")
