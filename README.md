@@ -8,7 +8,7 @@
 [![AI Engine](https://img.shields.io/badge/AI-OpenRouter%20LLM-orange?style=for-the-badge)](https://openrouter.ai)
 [![Cloud Sandbox](https://img.shields.io/badge/Sandbox-Daytona%20Cloud-green?style=for-the-badge)](https://app.daytona.io)
 [![Modules](https://img.shields.io/badge/Modules-71-red?style=for-the-badge)](#)
-[![Version](https://img.shields.io/badge/Version-4.0%20Ultra-purple?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/Version-6.0%20Ultra-purple?style=for-the-badge)](#)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/MayErj6NPf)
 
 **Engineered with passion by `GᕼOᔕTᗰEOᗯ`**
