@@ -508,6 +508,7 @@ def show_menu():
         ("PRO WORKFLOW & REPORTING", MENU_PROWORK),
         ("UTILITY & PRIVACY", MENU_UTILS),
         ("ELITE FORENSICS & RED TEAM", MENU_ELITE),
+        ("APT DEFENSE LAB", MENU_APT),
     ]
     for i, (title, items) in enumerate(sections):
         if i > 0:
@@ -2908,16 +2909,15 @@ def print_general_help():
     print(f"\n{BOLD}{BLUE}Utility & Privacy{RESET}")
     print(f"{BOLD}72. Encode/Decode Kit:{RESET} Base64, Hex, URL, ROT13, Binary & XOR tools (100% local).")
     print(f"{BOLD}73. Update Checker:{RESET} Checks GitHub for the latest NetherX version (real update detection).")
-
-    print(f"\n{CYAN}{BOLD}--- WHAT CAN YOU DO WITH A TARGET'S IP? ---{RESET}")
-    print(f"{BOLD}Server Identification:{RESET} Identify server software and stack.")
-    print(f"{BOLD}Geo-Location:{RESET} Find physical hosting location.")
-    print(f"{BOLD}Firewall/CDN Detection:{RESET} Detect Cloudflare or reverse proxies.")
-    print(f"{BOLD}Port & Service Discovery:{RESET} Find exposed databases and admin panels.")
-    print(f"{BOLD}Attack Surface Mapping:{RESET} Combine subdomains + ports + exposed files.")
-    print(f"\n{YELLOW}Reminder: Only scan, enumerate, or test assets you own or are authorized to assess.{RESET}")
-
-
+    print(f"\n{BOLD}{BLUE}Elite Forensics & Red Team{RESET}")
+    print(f"{BOLD}74. Ransom Trap:{RESET} Crypto-honeypot bait vault that catches ransomware live.")
+    print(f"{BOLD}75. RAM Ghost:{RESET} Memory forensics - pulls passwords/keys/tokens from RAM.")
+    print(f"{BOLD}76. Chain Reactor:{RESET} AI zero-click attack chain graph for authorized targets.")
+    print(f"{BOLD}77. Theme Selector:{RESET} Switch UI themes (MATRIX/GHOST/EMBER/ICE).")
+    print(f"\n{BOLD}{BLUE}APT Defense Lab{RESET}")
+    print(f"{BOLD}78. Supply Chain Guard:{RESET} Typosquat + maturity + sha256 + OSV audit for packages.")
+    print(f"{BOLD}79. Ransom Defense:{RESET} Double-extortion readiness score (backups, shadows, exfil).")
+    print(f"{BOLD}80. Kill Chain Visual:{RESET} Interactive 7-stage kill chain with real defenses.")
 
 # ==========================================
 # 57. HONEYTOKEN THREAT TRACKER v3.0
@@ -4365,6 +4365,188 @@ MENU_ELITE = [
 ]
 
 # ==========================================
+# v6.1 APT DEFENSE LAB: SUPPLY CHAIN + RANSOM DEFENSE + KILL CHAIN
+# ==========================================
+POPULAR_PKGS = ['requests','numpy','pandas','flask','django','urllib3','setuptools','pip','colorama','aiohttp','websockets','pyyaml','cryptography','pillow','scrapy','beautifulsoup4','selenium','torch','tensorflow','matplotlib','scikit-learn','opencv-python','redis','celery','fastapi','pydantic','tqdm','rich','httpx','paramiko','psutil','lxml','python-dotenv','pyjwt','sqlalchemy','pymongo','psycopg2','yaml','bs4','sklearn','cv2','PIL','websocket','jwt','dotenv']
+
+def _lev(a, b):
+    if abs(len(a) - len(b)) > 2: return 99
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j] + 1, cur[j-1] + 1, prev[j-1] + (ca != cb)))
+        prev = cur
+    return prev[-1]
+
+# ---------- 78. SUPPLY CHAIN GUARD ----------
+def supply_chain_guard():
+    print_section('SUPPLY CHAIN GUARD (Dependency Integrity)')
+    src = get_input(f"{BOLD}Enter package name(s) or requirements.txt path: {RESET}")
+    if not src: print_error('No input.'); return
+    pkgs = []
+    if os.path.exists(src):
+        with open(src, encoding='utf-8', errors='ignore') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    pkgs.append(re.split(r'[=<>!~\[;\s]', line)[0].strip().lower())
+    else:
+        pkgs = [p.strip().lower() for p in re.split(r'[,\s]+', src) if p.strip()]
+    print_info(f'Auditing {len(pkgs)} package(s) for supply-chain risk...')
+    for pkg in pkgs[:15]:
+        risk = []
+        for pop in POPULAR_PKGS:
+            if pkg != pop and _lev(pkg, pop) <= 1:
+                risk.append(f'TYPOSQUAT of "{pop}"'); break
+        meta = None
+        try:
+            req = urllib.request.Request(f'https://pypi.org/pypi/{pkg}/json', headers={'User-Agent': 'NetherX/6.0'})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                meta = json.loads(resp.read().decode())
+        except Exception:
+            pass
+        print(f"\n  {BOLD}{G2}{pkg}{RESET}")
+        if meta is None:
+            risk.append('NOT on PyPI (private/typo/removed)')
+        else:
+            info = meta.get('info', {}); rel = meta.get('releases', {})
+            n_rel = len([v for v in rel.values() if v])
+            dates = [fl.get('upload_time', '') for files in rel.values() for fl in files if fl.get('upload_time')]
+            first = min(dates) if dates else '?'
+            ver = info.get('version', '?')
+            hashes = [(fl.get('filename', '?')[:35], fl.get('digests', {}).get('sha256', '')[:16]) for fl in rel.get(ver, []) if fl.get('digests')]
+            osv_bad = 0
+            try:
+                payload = json.dumps({'package': {'ecosystem': 'PyPI', 'name': pkg}}).encode()
+                req = urllib.request.Request('https://api.osv.dev/v1/query', data=payload, headers={'Content-Type': 'application/json', 'User-Agent': 'NetherX/6.0'})
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    osv_bad = len(json.loads(resp.read().decode()).get('vulns', []))
+            except Exception:
+                pass
+            print(f"    Latest: {ver} | Releases: {n_rel} | First upload: {str(first)[:10]}")
+            for fn, hg in hashes[:2]:
+                print(f"    sha256({fn}...): {YELLOW}{hg}...{RESET}")
+            if n_rel <= 1: risk.append('single release (low maturity)')
+            if str(first)[:4] >= '2024': risk.append('very new package')
+            if osv_bad: risk.append(f'{osv_bad} OSV advisories!')
+        if risk:
+            print(f"    {RED}[!] RISKS: {' | '.join(risk)}{RESET}")
+            log_finding('Supply Chain', 'HIGH', f'{pkg}: ' + ', '.join(risk))
+        else:
+            print(f"    {GREEN}[+] No obvious supply-chain red flags.{RESET}")
+    print()
+    print_info('Tip: pin versions + verify sha256 in CI/CD before every install.')
+
+# ---------- 79. RANSOM DEFENSE SUITE ----------
+def ransom_defense_suite():
+    print_section('DOUBLE-EXTORTION READINESS AUDIT')
+    score = 100
+    findings = []
+    if sys.platform == 'win32':
+        try:
+            r = subprocess.run(['vssadmin', 'list', 'shadows'], capture_output=True, text=True, timeout=10)
+            count = (r.stdout + r.stderr).lower().count('shadow copy id')
+            if count == 0:
+                score -= 25
+                findings.append(('CRITICAL', 'No shadow copies - ransomware deletes these first. Enable System Restore.'))
+            else:
+                print(f"    {GREEN}[+] Shadow copies present: {count}{RESET}")
+        except Exception:
+            findings.append(('WARN', 'Could not query shadow copies (run as admin).'))
+    else:
+        findings.append(('INFO', 'Shadow check is Windows-only; verify LVM/ZFS snapshots manually.'))
+    bpath = get_input(f"{BOLD}Enter your backup folder path (Enter to skip): {RESET}")
+    if bpath and os.path.exists(bpath):
+        newest = 0; count = 0
+        for root, dirs, files in os.walk(bpath):
+            for f in files:
+                try:
+                    t = os.path.getmtime(os.path.join(root, f))
+                    if t > newest: newest = t
+                except Exception: pass
+                count += 1
+                if count > 20000: break
+            if count > 20000: break
+        if newest:
+            days = (time.time() - newest) / 86400
+            if days > 7:
+                score -= 20
+                findings.append(('HIGH', f'Backups are {int(days)} days old - stale backups lose double-extortion battles.'))
+            else:
+                print(f"    {GREEN}[+] Backup freshness OK ({int(days)} days old).{RESET}")
+        if os.path.splitdrive(os.path.abspath(bpath))[0] == os.path.splitdrive(os.path.abspath(os.path.expanduser('~')))[0]:
+            score -= 15
+            findings.append(('HIGH', 'Backup on SAME drive as OS - ransomware encrypts both. Use offline/immutable storage.'))
+    elif bpath:
+        findings.append(('WARN', 'Backup path not found.'))
+    else:
+        score -= 20
+        findings.append(('HIGH', 'No backup path provided - backups unverified.'))
+    print(f"\n  {BOLD}Exfiltration watchlist (double extortion = steal FIRST):{RESET}")
+    for line in ['Large outbound uploads at odd hours', 'Traffic to unknown cloud storage', 'DNS spikes to rare domains (tunneling)']:
+        print(f"    {GD}*{RESET} {line}")
+    print_section('READINESS SCORE')
+    score = max(0, score)
+    color = GREEN if score >= 80 else YELLOW if score >= 50 else RED
+    print(f"  Score: {color}{BOLD}{score}/100{RESET}")
+    for sev, msg in findings:
+        col = RED if sev in ('CRITICAL', 'HIGH') else YELLOW if sev == 'WARN' else CYAN
+        print(f"  {col}[{sev}]{RESET} {msg}")
+    try:
+        s = '\n'.join(f'- {m}' for _, m in findings)
+        if s:
+            prompt = f"A company got these double-extortion ransomware audit findings. Give 5 prioritized remediation steps, concise:\n\n{s}"
+            ai_assess(prompt)
+    except Exception as e:
+        print_error(f'AI analysis failed: {e}')
+
+# ---------- 80. KILL CHAIN VISUALIZER ----------
+KILL_CHAIN = [
+    ("RECONNAISSANCE", "OSINT, subdomains, exposed services", "Shodan/crt.sh scans, phishing recon", "Reduce attack surface, monitor recon"),
+    ("WEAPONIZATION", "Payload + exploit prepared", "Ransomware builder, malicious docx", "Threat intel, attachment sandboxing"),
+    ("DELIVERY", "Payload reaches victim", "Phishing email, supply-chain update", "Email filtering, user awareness"),
+    ("EXPLOITATION", "Code executes", "Macro exploit, CVE trigger", "Patching, ASLR/DEP, app control"),
+    ("INSTALLATION", "Persistence", "Registry keys, services, WMI", "EDR, least privilege"),
+    ("COMMAND & CONTROL", "Beacon out", "C2 channels, DNS tunneling", "Egress filtering, beacon detection"),
+    ("ACTIONS ON OBJECTIVES", "Encrypt / exfiltrate", "Data theft + ransomware", "Offline backups, canary traps, IR plan"),
+]
+
+def kill_chain_visualizer():
+    print_section('CYBER KILL CHAIN (Conceptual - Educational)')
+    print(' 1. Classic ransomware attack')
+    print(' 2. APT / supply-chain attack')
+    print(' 3. Generic chain walkthrough')
+    ch = get_input(f"{BOLD}Select scenario (1-3): {RESET}")
+    for i, (stage, action, example, defense) in enumerate(KILL_CHAIN, 1):
+        print()
+        print(f"  {RED}{BOLD}[{i}/7] {stage}{RESET}")
+        print(f"    {G1}Attacker:{RESET} {action}")
+        print(f"    {YELLOW}Example:{RESET}  {example}")
+        print(f"    {GREEN}Defense:{RESET}  {defense}")
+        if i < 7:
+            print(f"    {GD}!{RESET}")
+    print()
+    if ch == '1':
+        note = "Ransomware compresses stages 2-6 into hours: phishing -> exploit -> C2 -> exfil -> encrypt."
+    elif ch == '2':
+        note = "Supply-chain skips delivery: victims INSTALL the weapon themselves via a trusted update (SolarWinds)."
+    else:
+        note = "Breaking ANY single stage stops the attack - defense in depth."
+    print(f"  {BOLD}{G2}SCENARIO NOTE:{RESET} {note}")
+    try:
+        prompt = f"Explain in 3 sentences how a defender can break the kill chain earliest for this scenario: {note}"
+        ai_assess(prompt)
+    except Exception as e:
+        print_error(f'AI analysis failed: {e}')
+
+MENU_APT = [
+    ("78", RED,     "Supply Chain Grd"),
+    ("79", MAGENTA, "Ransom Defense"),
+    ("80", YELLOW,  "Kill Chain Map"),
+]
+
+# ==========================================
 # MAIN LOOP
 # ==========================================
 
@@ -4373,7 +4555,7 @@ def main():
     get_input(f"{BOLD}Press Enter to launch NetherX...{RESET}")
     while True:
         show_menu()
-        choice = get_input(f"\n{G1}NetherX@CyberSecurity:~${RESET} {BOLD}{G2}select (1-77){RESET} {G1}❯{RESET} ")
+        choice = get_input(f"\n{G1}NetherX@CyberSecurity:~${RESET} {BOLD}{G2}select (1-80){RESET} {G1}❯{RESET} ")
         if choice is None:
             print(f"\n{GREEN}[*] Exiting System. Stay Safe!{RESET}")
             sys.exit(0)
@@ -4407,7 +4589,7 @@ def main():
             continue
 
         # Options that don't need sandbox
-        no_sandbox_options = {'6', '11', '14', '15', '19', '20', '21', '22', '25', '26', '27', '28', '30', '33', '35', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '49', '50', '51', '54', '57', '59', '60', '61', '62', '63', '69', '70', '71', '72', '73', '74', '75', '76', '77'}
+        no_sandbox_options = {'6', '11', '14', '15', '19', '20', '21', '22', '25', '26', '27', '28', '30', '33', '35', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '49', '50', '51', '54', '57', '59', '60', '61', '62', '63', '69', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '80'}
 
         if choice in no_sandbox_options:
             try:
@@ -4503,6 +4685,12 @@ def main():
                     zero_click_chain_reactor()
                 elif choice == '77':
                     theme_selector()
+                elif choice == '78':
+                    supply_chain_guard()
+                elif choice == '79':
+                    ransom_defense_suite()
+                elif choice == '80':
+                    kill_chain_visualizer()
             except Exception as e:
                 print_error(f'Option {choice} failed: {e}')
             press_enter()
