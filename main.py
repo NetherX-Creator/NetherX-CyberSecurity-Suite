@@ -162,6 +162,96 @@ WHITE   = "\033[97m"
 GRAY    = "\033[90m"
 RESET   = "\033[0m"
 
+import random
+
+# ==========================================
+# MATRIX HACKER THEME ENGINE (v5.0 Pro UI)
+# ==========================================
+START_TIME = time.time()
+
+def c(r, g, b):
+    return f"\033[38;2;{r};{g};{b}m"
+
+MGREEN = [(0,255,65),(0,230,60),(0,200,50),(50,255,100),(120,255,140)]
+MLIME  = [(180,255,0),(200,255,60),(220,255,100),(160,240,40),(140,220,20)]
+G1 = c(0, 255, 65)      # bright matrix green
+G2 = c(140, 255, 160)   # light green
+GD = c(0, 110, 25)      # dim green (code rain)
+
+def grad_text(text, palette, shift=0):
+    out = ""
+    for i, ch in enumerate(text):
+        r, g, b = palette[(i + shift) % len(palette)]
+        out += c(r, g, b) + ch
+    return out + RESET
+
+NETHERX_ASCII = [
+    "███╗   ██╗███████╗████████╗██╗  ██╗███████╗██████╗ ██╗  ██╗",
+    "████╗  ██║██╔════╝╚══██╔══╝██║  ██║██╔════╝██╔══██╗╚██╗██╔╝",
+    "██╔██╗ ██║█████╗     ██║   ███████║█████╗  ██████╔╝ ╚███╔╝ ",
+    "██║╚██╗██║██╔══╝     ██║   ██╔══██║██╔══╝  ██╔══██╗ ██╔██╗ ",
+    "██║ ╚████║███████╗   ██║   ██║  ██║███████╗██║  ██║██╔╝ ██╗",
+    "╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝",
+]
+
+def show_banner():
+    w = 101
+    print()
+    print(grad_text("=== NETHERX v5.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
+    for i, line in enumerate(NETHERX_ASCII):
+        print(grad_text(line.center(w), MLIME, shift=i * 2))
+    print(grad_text(">> Knowledge. Exploit. Control. <<".center(w), MGREEN))
+    print()
+    
+def show_banner():
+    w = 101
+    print()
+    print(grad_text("=== NETHERX v5.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
+    for i, line in enumerate(NETHERX_ASCII):
+        print(grad_text(line.center(w), MLIME, shift=i * 3))
+    print(grad_text(">> Knowledge. Exploit. Control. <<".center(w), MGREEN))
+    print()
+
+def mbox_top():
+    return f"{G1}┌{'─' * 101}┐{RESET}"
+def mbox_mid():
+    return f"{G1}├{'─' * 101}┤{RESET}"
+def mbox_bot():
+    return f"{G1}└{'─' * 101}┘{RESET}"
+def mbox_line(text):
+    return f"{G1}│{RESET}" + pad_to_width(text, 101) + f"{G1}│{RESET}"
+
+def matrix_columns(items, cols=4, cell_w=22):
+    rows = (len(items) + cols - 1) // cols
+    result = []
+    for r in range(rows):
+        parts = []
+        for cc in range(cols):
+            idx = r * cols + cc
+            if idx < len(items):
+                num, _clr, name = items[idx]
+                tag = f"{G2}«{num.zfill(2)}»{RESET}"
+                cell = f"{tag} {G1}{name}{RESET}"
+                parts.append(pad_to_width(cell, cell_w))
+            else:
+                parts.append(' ' * cell_w)
+        result.append('    '.join(parts))
+    return '\n'.join(result)
+
+def show_status_bar():
+    up = int(time.time() - START_TIME)
+    hh, mm, ss = up // 3600, (up % 3600) // 60, up % 60
+    ai_on = bool(OPENROUTER_API_KEY)
+    sb_on = bool(daytona)
+    print()
+    print(mbox_top())
+    bar = (f"  {G2}⦿{RESET} {G1}AI engine:{RESET} {G2}{'online' if ai_on else 'offline'}{RESET}"
+           f"  {GD}|{RESET} {G1}sandbox:{RESET} {G2}{'active' if sb_on else 'off'}{RESET}"
+           f"  {GD}|{RESET} {G1}integrity:{RESET} {G2}secure{RESET}"
+           f"  {GD}|{RESET} {G1}uptime:{RESET} {G2}{hh:02d}:{mm:02d}:{ss:02d}{RESET}")
+    print(mbox_line(bar))
+    print(mbox_bot())
+
 def visible_len(s):
     return len(re.sub(r'\x1b\[[0-9;]*m', '', s))
 
@@ -325,55 +415,106 @@ MENU_CREDITS = [
     ("58", CYAN,    "Developer Info"),
 ]
 
+# ==========================================
+# MATRIX RAIN UPDATE (background numbers)
+# ==========================================
+RAINF = "0123456789ABCDEF0123456789#$*"
 
+def _rain(n):
+    return ''.join(random.choice(RAINF) if random.random() < 0.55 else ' ' for _ in range(n))
+
+def _side():
+    try:
+        return 3 if os.get_terminal_size().columns >= 112 else 0
+    except Exception:
+        return 0
+
+def mbox_top():
+    s = _side()
+    r = f"{GD}{_rain(s)}{RESET}" if s else ""
+    return r + f"{G1}┌{'─' * 101}┐{RESET}" + r
+
+def mbox_mid():
+    s = _side()
+    r = f"{GD}{_rain(s)}{RESET}" if s else ""
+    return r + f"{G1}├{'─' * 101}┤{RESET}" + r
+
+def mbox_bot():
+    s = _side()
+    r = f"{GD}{_rain(s)}{RESET}" if s else ""
+    return r + f"{G1}└{'─' * 101}┘{RESET}" + r
+
+def mbox_line(text):
+    s = _side()
+    r = f"{GD}{_rain(s)}{RESET}" if s else ""
+    return r + f"{G1}│{RESET}" + pad_to_width(text, 101) + f"{G1}│{RESET}" + r
+
+def show_banner():
+    w = 101
+    s = _side()
+    print()
+    if s:
+        print(f"{GD}{_rain(w + 8)}{RESET}")
+    print(grad_text("=== NETHERX v5.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
+    for i, line in enumerate(NETHERX_ASCII):
+        r = f"{GD}{_rain(s)}{RESET}" if s else ""
+        print(r + grad_text(line.center(w), MLIME, shift=i * 2) + r)
+    print(grad_text(">> Knowledge. Exploit. Control. <<".center(w), MGREEN))
+    if s:
+        print(f"{GD}{_rain(w + 8)}{RESET}")
+    print()
+
+# ==========================================
+# CLEAN MATRIX UI (scattered side rain removed)
+# ==========================================
+def mbox_top():
+    return f"{G1}┌{'─' * 101}┐{RESET}"
+
+def mbox_mid():
+    return f"{G1}├{'─' * 101}┤{RESET}"
+
+def mbox_bot():
+    return f"{G1}└{'─' * 101}┘{RESET}"
+
+def mbox_line(text):
+    return f"{G1}│{RESET}" + pad_to_width(text, 101) + f"{G1}│{RESET}"
+
+def show_banner():
+    w = 101
+    print()
+    print(grad_text("=== NETHERX v5.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
+    for i, line in enumerate(NETHERX_ASCII):
+        print(grad_text(line.center(w), MLIME, shift=i * 2))
+    print(grad_text(">> Knowledge. Exploit. Control. <<".center(w), MGREEN))
+    print()
 
 def show_menu():
-    print()
-    print(box_top())
-    title = f"{BOLD}{CYAN}ADVANCED AI-POWERED NetherX CYBERSECURITY SUITE v4.0 Ultra{RESET}"
-    print(box_line(center_text(title, 74), 'center'))
-    print(box_mid())
-    print(box_line(f"  {BOLD}{YELLOW}[ CORE AUDIT & THREAT ANALYSIS ]{RESET}"))
-    for line in render_columns(MENU_CORE, 4).split('\n'):
-        print(box_line(' ' + line))
-    print(box_mid())
-    print(box_line(f"  {BOLD}{YELLOW}[ WEB APPLICATION SECURITY ]{RESET}"))
-    for line in render_columns(MENU_WEB, 4).split('\n'):
-        print(box_line(' ' + line))
-    print(box_mid())
-    print(box_line(f"  {BOLD}{YELLOW}[ NETWORK & INFRASTRUCTURE ]{RESET}"))
-    for line in render_columns(MENU_NET, 4).split('\n'):
-        print(box_line(' ' + line))
-    print(box_mid())
-    print(box_line(f"  {BOLD}{YELLOW}[ SYSTEM FORENSICS ]{RESET}"))
-    for line in render_columns(MENU_FORENSICS, 4).split('\n'):
-        print(box_line(' ' + line))
-    print(box_mid())
-    print(box_line(f"  {BOLD}{YELLOW}[ CLOUD & DEVSECOPS ]{RESET}"))
-    for line in render_columns(MENU_CLOUD, 4).split('\n'):
-        print(box_line(' ' + line))
-    print(box_mid())
-    print(box_line(f"  {BOLD}{YELLOW}[ THREAT INTELLIGENCE & TRACKING ]{RESET}  "))
-    for line in render_columns(MENU_TRACKER, 4).split('\n'):
-        print(box_line(' ' + line))
-    print(box_mid())
-    print(box_line(f"  {BOLD}{YELLOW}[ LIVE THREAT INTELLIGENCE APIs ]{RESET}  "))
-    for line in render_columns(MENU_LIVE_INTEL, 4).split('\n'):
-        print(box_line(' ' + line))
-    print(box_mid())
-    print(box_line(f"  {BOLD}{YELLOW}[ BUG BOUNTY & PENTEST POWER ]{RESET}  "))
-    for line in render_columns(MENU_BOUNTY, 4).split('\n'):
-        print(box_line(' ' + line))
-    print(box_mid())
-    print(box_line(f"  {BOLD}{YELLOW}[ PRO WORKFLOW & REPORTING ]{RESET}  "))
-    for line in render_columns(MENU_PROWORK, 4).split('\n'):
-        print(box_line(' ' + line))
-    print(box_mid())
-    print(box_line(f"  {BOLD}{YELLOW}[ CREDITS & DEVELOPER INFO ]{RESET}  "))
-    for line in render_columns(MENU_CREDITS, 4).split('\n'):
-        print(box_line(' ' + line))
-    print(box_bot())
-    print()
+    os.system('cls' if os.name == 'nt' else 'clear')
+    show_banner()
+    print(mbox_top())
+    sections = [
+        ("CORE AUDIT & THREAT ANALYSIS", MENU_CORE),
+        ("WEB APPLICATION SECURITY", MENU_WEB),
+        ("NETWORK & INFRASTRUCTURE", MENU_NET),
+        ("SYSTEM FORENSICS", MENU_FORENSICS),
+        ("CLOUD & DEVSECOPS", MENU_CLOUD),
+        ("THREAT INTELLIGENCE", MENU_INTEL),
+        ("ADVANCED OPERATIONS", MENU_ADVANCED),
+        ("SYSTEM", MENU_SYSTEM),
+        ("THREAT INTELLIGENCE & TRACKING", MENU_TRACKER),
+        ("CREDITS & DEVELOPER INFO", MENU_CREDITS),
+        ("LIVE THREAT INTELLIGENCE APIs", MENU_LIVE_INTEL),
+        ("BUG BOUNTY & PENTEST POWER", MENU_BOUNTY),
+        ("PRO WORKFLOW & REPORTING", MENU_PROWORK),
+    ]
+    for i, (title, items) in enumerate(sections):
+        if i > 0:
+            print(mbox_mid())
+        print(mbox_line(f"  {GD}[{RESET} {BOLD}{G2}{title}{RESET} {GD}]{RESET}"))
+        for line in matrix_columns(items, 4).split('\n'):
+            print(mbox_line(' ' + line))
+    print(mbox_bot())
+    show_status_bar()
 # ==========================================
 # CORE HELPERS
 # ==========================================
@@ -3832,7 +3973,7 @@ def local_ai_ollama():
 def main():
     while True:
         show_menu()
-        choice = get_input(f"{BOLD}Select an Option (1-71): {RESET}")
+        choice = get_input(f"\n{G1}NetherX@CyberSecurity:~${RESET} {BOLD}{G2}select (1-71){RESET} {G1}❯{RESET} ")
         if choice is None:
             print(f"\n{GREEN}[*] Exiting System. Stay Safe!{RESET}")
             sys.exit(0)
