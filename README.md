@@ -13,7 +13,8 @@
 
 **Engineered with passion by `GᕼOᔕTᗰEOᗯ`**
 
-<img width="1180" height="914" alt="Screenshot 2026-08-22 202529" src="https://github.com/user-attachments/assets/23d2f7c9-584d-4fa4-a3c3-f632071ed759" />
+<img width="752" height="913" alt="Screenshot 2026-08-23 110620" src="https://github.com/user-attachments/assets/68295938-bc91-4021-a035-7d7c6a977a96" />
+
 
 *71 security modules. One terminal. AI-powered analysis. Cloud-isolated execution.*
 
