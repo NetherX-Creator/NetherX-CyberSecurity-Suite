@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ NetherX Cybersecurity Suite v4.0 Ultra
+# 🛡️ NetherX Cybersecurity Suite v6.0 Ultra
 
 ### *Advanced AI-Powered Offensive & Defensive Security Framework*
 
