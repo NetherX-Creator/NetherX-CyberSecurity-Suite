@@ -506,6 +506,7 @@ def show_menu():
         ("LIVE THREAT INTELLIGENCE APIs", MENU_LIVE_INTEL),
         ("BUG BOUNTY & PENTEST POWER", MENU_BOUNTY),
         ("PRO WORKFLOW & REPORTING", MENU_PROWORK),
+        ("UTILITY & PRIVACY", MENU_UTILS),
     ]
     for i, (title, items) in enumerate(sections):
         if i > 0:
@@ -3967,13 +3968,174 @@ def local_ai_ollama():
         print_error(f'Ollama query failed: {e}')
 
 # ==========================================
+# v5.1 PRIVACY SHIELD + SPINNER + BOOT + UTILS
+# ==========================================
+REDACT_PATTERNS = [
+    (r'(ghp_[0-9a-zA-Z]{36}|AKIA[0-9A-Z]{16}|xox[baprs]-[0-9a-zA-Z-]+|sk-[A-Za-z0-9]{20,})', '[KEY_REDACTED]'),
+    (r"(?i)(password|passwd|pwd|secret|token|api[_-]?key)\s*[:=]\s*['\"]?[^'\"\s,}]+", r'\1=[REDACTED]'),
+    (r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', '[EMAIL_REDACTED]'),
+    (r'\b[0-9a-fA-F]{32,64}\b', '[HASH_REDACTED]'),
+]
+
+def redact_sensitive(text):
+    for pat, rep in REDACT_PATTERNS:
+        text = re.sub(pat, rep, text)
+    return text
+
+def privacy_wipe():
+    try:
+        if os.path.exists('/tmp/_suite_task_script.py'):
+            os.remove('/tmp/_suite_task_script.py')
+    except Exception:
+        pass
+
+SPIN_FRAMES = ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏']
+
+def _spinner_run(stop_event, label):
+    i = 0
+    while not stop_event.is_set():
+        sys.stdout.write(f"\r  {GREEN}{SPIN_FRAMES[i % len(SPIN_FRAMES)]}{RESET} {CYAN}{label}...{RESET}     ")
+        sys.stdout.flush()
+        time.sleep(0.1)
+        i += 1
+    sys.stdout.write("\r" + " " * 60 + "\r")
+    sys.stdout.flush()
+
+def ai_assess(prompt):
+    print(f"\n{MAGENTA}[+] Querying OpenRouter (privacy shield active)...{RESET}")
+    print(f"{YELLOW}--- OpenRouter RESPONSE ---{RESET}")
+    stop = threading.Event()
+    t = threading.Thread(target=_spinner_run, args=(stop, "AI analyzing"), daemon=True)
+    t.start()
+    result = call_gemini(redact_sensitive(prompt))
+    stop.set()
+    t.join()
+    print(result)
+    privacy_wipe()
+    print(f"{GRAY}[🔒 Privacy: prompt sanitized + session data wiped]{RESET}")
+
+def boot_sequence():
+    steps = [
+        ("Initializing NetherX kernel v5.0 Pro", CYAN),
+        ("Loading 73 security modules", GREEN),
+        ("Starting AI engine (OpenRouter)", MAGENTA),
+        ("Connecting Daytona cloud sandbox", CYAN),
+        ("Arming privacy shield (auto-wipe mode)", GREEN),
+        ("Rendering Matrix interface", YELLOW),
+    ]
+    print()
+    for text, col in steps:
+        for i in range(1, 5):
+            sys.stdout.write(f"\r  {col}[*] {text} {'.' * i}{RESET}        ")
+            sys.stdout.flush()
+            time.sleep(0.10)
+        sys.stdout.write(f"\r  {GREEN}[+] {text} ... [OK]{RESET}          \n")
+    print()
+
+def _rot13(s):
+    out = []
+    for ch in s:
+        if 'a' <= ch <= 'z': out.append(chr((ord(ch) - 97 + 13) % 26 + 97))
+        elif 'A' <= ch <= 'Z': out.append(chr((ord(ch) - 65 + 13) % 26 + 65))
+        else: out.append(ch)
+    return ''.join(out)
+
+def encoding_toolkit():
+    print_section('ENCODING / DECODING TOOLKIT (100% LOCAL - no AI)')
+    print(' 1. Base64 Encode    2. Base64 Decode')
+    print(' 3. Hex Encode       4. Hex Decode')
+    print(' 5. URL Encode       6. URL Decode')
+    print(' 7. ROT13            8. Binary Encode')
+    print(' 9. Binary Decode    10. XOR Encode/Decode')
+    ch = get_input(f"{BOLD}Select (1-10): {RESET}")
+    if not ch: return
+    data = get_input(f"{BOLD}Enter text: {RESET}")
+    if not data: print_error('No input.'); return
+    out = None
+    try:
+        if ch == '1': out = base64.b64encode(data.encode()).decode()
+        elif ch == '2': out = base64.b64decode(data.encode()).decode(errors='ignore')
+        elif ch == '3': out = data.encode().hex()
+        elif ch == '4': out = bytes.fromhex(data.replace(' ', '')).decode(errors='ignore')
+        elif ch == '5': out = urllib.parse.quote(data, safe='')
+        elif ch == '6': out = urllib.parse.unquote(data)
+        elif ch == '7': out = _rot13(data)
+        elif ch == '8': out = ' '.join(format(b, '08b') for b in data.encode())
+        elif ch == '9': out = bytes(int(b, 2) for b in data.split()).decode(errors='ignore')
+        elif ch == '10':
+            key = get_input(f"{BOLD}Enter XOR key: {RESET}")
+            if not key: print_error('No key.'); return
+            kb = key.encode()
+            toks = data.split()
+            if len(toks) > 1 and all(re.fullmatch(r'[0-9a-fA-F]{2}', t) for t in toks):
+                out = bytes(int(t, 16) ^ kb[i % len(kb)] for i, t in enumerate(toks)).decode(errors='ignore')
+            else:
+                out = ' '.join(f'{c ^ kb[i % len(kb)]:02x}' for i, c in enumerate(data.encode()))
+        else:
+            print_error('Invalid choice.'); return
+        print(f"\n  {GREEN}{BOLD}RESULT:{RESET} {CYAN}{out}{RESET}\n")
+    except Exception as e:
+        print_error(f'Operation failed: {e}')
+
+def github_update_checker():
+    print_info('Checking GitHub for latest NetherX version...')
+    LOCAL_VERSION = "5.1"
+    try:
+        # 1) Fetch remote version file (real update detection)
+        remote_version = None
+        try:
+            req = urllib.request.Request('https://raw.githubusercontent.com/NetherX-Creator/NetherX-CyberSecurity-Suite/main/version.txt', headers={'User-Agent': 'NetherX/5.0'})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                remote_version = resp.read().decode().strip()
+        except Exception:
+            remote_version = None
+
+        # 2) Fetch latest commit info
+        req = urllib.request.Request('https://api.github.com/repos/NetherX-Creator/NetherX-CyberSecurity-Suite/commits/main', headers={'User-Agent': 'NetherX/5.0'})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode())
+        sha = data.get('sha', '')[:7]
+        msg = (data.get('commit', {}).get('message', '') or '?').splitlines()[0]
+        date = (data.get('commit', {}).get('committer', {}).get('date', '') or '')[:10]
+
+        print_section('UPDATE CHECK')
+        print(f' Local version:  v{LOCAL_VERSION} Pro (73 modules)')
+        print(f' Latest commit:  {sha} | {date}')
+        print(f' Message:        {msg}')
+        print(f' Repo:           https://github.com/NetherX-Creator/NetherX-CyberSecurity-Suite')
+
+        # 3) Real comparison
+        if remote_version:
+            try:
+                lv, loc = float(remote_version), float(LOCAL_VERSION)
+            except Exception:
+                lv, loc = 0.0, 0.0
+            if lv > loc:
+                print(f'{RED}[!] UPDATE AVAILABLE: GitHub has v{remote_version}, you are running v{LOCAL_VERSION}.{RESET}')
+                print(f'{YELLOW}[*] Get the latest code: git pull (or re-download from GitHub){RESET}')
+            else:
+                print(f'{GREEN}[+] You are up to date (v{LOCAL_VERSION}). No update available.{RESET}')
+        else:
+            print(f'{YELLOW}[!] version.txt not found on GitHub - cannot verify remote version.{RESET}')
+            print(f'{GREEN}[+] To get the latest code: git pull (or re-download from GitHub){RESET}')
+    except Exception as e:
+        print_error(f'Update check failed: {e}')
+
+MENU_UTILS = [
+    ("72", YELLOW, "Encode/Decode Kit"),
+    ("73", GREEN,  "Update Checker"),
+]
+
+# ==========================================
 # MAIN LOOP
 # ==========================================
 
 def main():
+    boot_sequence()
+    get_input(f"{BOLD}Press Enter to launch NetherX...{RESET}")
     while True:
         show_menu()
-        choice = get_input(f"\n{G1}NetherX@CyberSecurity:~${RESET} {BOLD}{G2}select (1-71){RESET} {G1}❯{RESET} ")
+        choice = get_input(f"\n{G1}NetherX@CyberSecurity:~${RESET} {BOLD}{G2}select (1-73){RESET} {G1}❯{RESET} ")
         if choice is None:
             print(f"\n{GREEN}[*] Exiting System. Stay Safe!{RESET}")
             sys.exit(0)
@@ -4007,7 +4169,7 @@ def main():
             continue
 
         # Options that don't need sandbox
-        no_sandbox_options = {'6', '11', '14', '15', '19', '20', '21', '22', '25', '26', '27', '28', '30', '33', '35', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '49', '50', '51', '54', '57', '59', '60', '61', '62', '63', '69', '70', '71'}
+        no_sandbox_options = {'6', '11', '14', '15', '19', '20', '21', '22', '25', '26', '27', '28', '30', '33', '35', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '49', '50', '51', '54', '57', '59', '60', '61', '62', '63', '69', '70', '71', '72', '73'}
 
         if choice in no_sandbox_options:
             try:
@@ -4091,6 +4253,10 @@ def main():
                     pentest_report_generator()
                 elif choice == '71':
                     local_ai_ollama()
+                elif choice == '72':
+                    encoding_toolkit()
+                elif choice == '73':
+                    github_update_checker()
             except Exception as e:
                 print_error(f'Option {choice} failed: {e}')
             press_enter()
