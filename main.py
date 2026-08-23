@@ -165,7 +165,7 @@ RESET   = "\033[0m"
 import random
 
 # ==========================================
-# MATRIX HACKER THEME ENGINE (v5.0 Pro UI)
+# MATRIX HACKER THEME ENGINE (v6.0 Pro UI)
 # ==========================================
 START_TIME = time.time()
 
@@ -197,7 +197,7 @@ NETHERX_ASCII = [
 def show_banner():
     w = 101
     print()
-    print(grad_text("=== NETHERX v5.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
+    print(grad_text("=== NETHERX v6.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
     for i, line in enumerate(NETHERX_ASCII):
         print(grad_text(line.center(w), MLIME, shift=i * 2))
     print(grad_text(">> Knowledge. Exploit. Control. <<".center(w), MGREEN))
@@ -206,7 +206,7 @@ def show_banner():
 def show_banner():
     w = 101
     print()
-    print(grad_text("=== NETHERX v5.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
+    print(grad_text("=== NETHERX v6.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
     for i, line in enumerate(NETHERX_ASCII):
         print(grad_text(line.center(w), MLIME, shift=i * 3))
     print(grad_text(">> Knowledge. Exploit. Control. <<".center(w), MGREEN))
@@ -455,7 +455,7 @@ def show_banner():
     print()
     if s:
         print(f"{GD}{_rain(w + 8)}{RESET}")
-    print(grad_text("=== NETHERX v5.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
+    print(grad_text("=== NETHERX v6.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
     for i, line in enumerate(NETHERX_ASCII):
         r = f"{GD}{_rain(s)}{RESET}" if s else ""
         print(r + grad_text(line.center(w), MLIME, shift=i * 2) + r)
@@ -482,7 +482,7 @@ def mbox_line(text):
 def show_banner():
     w = 101
     print()
-    print(grad_text("=== NETHERX v5.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
+    print(grad_text("=== NETHERX v6.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
     for i, line in enumerate(NETHERX_ASCII):
         print(grad_text(line.center(w), MLIME, shift=i * 2))
     print(grad_text(">> Knowledge. Exploit. Control. <<".center(w), MGREEN))
@@ -507,6 +507,7 @@ def show_menu():
         ("BUG BOUNTY & PENTEST POWER", MENU_BOUNTY),
         ("PRO WORKFLOW & REPORTING", MENU_PROWORK),
         ("UTILITY & PRIVACY", MENU_UTILS),
+        ("ELITE FORENSICS & RED TEAM", MENU_ELITE),
     ]
     for i, (title, items) in enumerate(sections):
         if i > 0:
@@ -1427,6 +1428,7 @@ def firewall_config_analyzer():
     print('Paste your firewall rules (iptables/ufw/firewalld) below.')
     print(f"{YELLOW}(Type 'END' on its own line when finished){RESET}")
     rules = []
+    load_theme()
     while True:
         line = get_input('')
         if line is None or line.strip() == 'END': break
@@ -3418,7 +3420,7 @@ def show_developer_info():
     print()
 
 # ==================================================
-# NETHERX v5.0 PRO PACK - LIVE INTEL / BOUNTY / PRO WORKFLOW
+# NETHERX v6.0 PRO PACK - LIVE INTEL / BOUNTY / PRO WORKFLOW
 # ==================================================
 REPORT_FINDINGS = []
 
@@ -3933,7 +3935,7 @@ def pentest_report_generator():
     html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>NetherX Pentest Report</title>
 <style>body{{font-family:Segoe UI,Arial;background:#0f1117;color:#eee;padding:40px}}h1{{color:#667eea}}table{{width:100%;border-collapse:collapse;margin-top:20px}}td,th{{border:1px solid #333;padding:8px;text-align:left;font-size:14px}}th{{background:#1c2030}}</style></head>
 <body><h1>🛡️ NetherX Penetration Test Report</h1>
-<p><b>Project:</b> {target}<br><b>Tester:</b> {tester}<br><b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M')}<br><b>Tool:</b> NetherX Cybersecurity Suite v5.0 Pro</p>
+<p><b>Project:</b> {target}<br><b>Tester:</b> {tester}<br><b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M')}<br><b>Tool:</b> NetherX Cybersecurity Suite v6.0 Pro</p>
 <h2>Automated Findings ({len(REPORT_FINDINGS)})</h2>
 <table><tr><th>Time</th><th>Module</th><th>Severity</th><th>Finding</th></tr>{rows or '<tr><td colspan=4>No automated findings logged this session.</td></tr>'}</table>
 <h2>Analyst Notes</h2><p>{'<br>'.join(notes) if notes else 'No additional notes.'}</p>
@@ -3971,7 +3973,7 @@ def local_ai_ollama():
         print_error(f'Ollama query failed: {e}')
 
 # ==========================================
-# v5.1 PRIVACY SHIELD + SPINNER + BOOT + UTILS
+# v6.0 PRIVACY SHIELD + SPINNER + BOOT + UTILS
 # ==========================================
 REDACT_PATTERNS = [
     (r'(ghp_[0-9a-zA-Z]{36}|AKIA[0-9A-Z]{16}|xox[baprs]-[0-9a-zA-Z-]+|sk-[A-Za-z0-9]{20,})', '[KEY_REDACTED]'),
@@ -4019,7 +4021,7 @@ def ai_assess(prompt):
 
 def boot_sequence():
     steps = [
-        ("Initializing NetherX kernel v5.0 Pro", CYAN),
+        ("Initializing NetherX kernel v6.0 Pro", CYAN),
         ("Loading 73 security modules", GREEN),
         ("Starting AI engine (OpenRouter)", MAGENTA),
         ("Connecting Daytona cloud sandbox", CYAN),
@@ -4082,7 +4084,7 @@ def encoding_toolkit():
 
 def github_update_checker():
     print_info('Checking GitHub for latest NetherX version...')
-    LOCAL_VERSION = "5.1"
+    LOCAL_VERSION = "6.0"
     try:
         # 1) Fetch remote version file (real update detection)
         remote_version = None
@@ -4130,6 +4132,239 @@ MENU_UTILS = [
 ]
 
 # ==========================================
+# v6.0 ELITE PACK: THEMES + KILL-SWITCH + RAM GHOST + CHAIN REACTOR
+# ==========================================
+THEMES = {
+    'MATRIX': {'G1': (0,255,65),  'G2': (140,255,160), 'GD': (0,110,25),
+               'MGREEN': [(0,255,65),(0,230,60),(0,200,50),(50,255,100),(120,255,140)],
+               'MLIME': [(140,255,140),(120,255,100),(100,240,80),(120,255,100),(140,255,140)]},
+    'GHOST':  {'G1': (160,60,240),'G2': (220,160,255), 'GD': (80,0,160),
+               'MGREEN': [(80,0,160),(120,20,200),(160,60,240),(200,110,255),(220,160,255)],
+               'MLIME': [(200,110,255),(160,60,240),(120,20,200),(160,60,240),(200,110,255)]},
+    'EMBER':  {'G1': (255,100,10),'G2': (255,210,90),  'GD': (140,0,0),
+               'MGREEN': [(255,60,0),(255,100,10),(255,140,30),(255,180,60),(255,210,90)],
+               'MLIME': [(255,180,60),(255,140,30),(255,100,10),(255,140,30),(255,180,60)]},
+    'ICE':    {'G1': (20,210,240),'G2': (180,250,255), 'GD': (0,90,130),
+               'MGREEN': [(0,180,220),(20,210,240),(60,230,255),(120,245,255),(180,250,255)],
+               'MLIME': [(120,245,255),(60,230,255),(20,210,240),(60,230,255),(120,245,255)]},
+}
+
+def load_theme():
+    global G1, G2, GD, MGREEN, MLIME
+    t = THEMES.get(load_config().get('theme', 'MATRIX'), THEMES['MATRIX'])
+    G1 = c(*t['G1']); G2 = c(*t['G2']); GD = c(*t['GD'])
+    MGREEN = t['MGREEN']; MLIME = t['MLIME']
+
+def apply_theme(name):
+    global G1, G2, GD, MGREEN, MLIME
+    t = THEMES.get(name.upper(), THEMES['MATRIX'])
+    G1 = c(*t['G1']); G2 = c(*t['G2']); GD = c(*t['GD'])
+    MGREEN = t['MGREEN']; MLIME = t['MLIME']
+    cfg = load_config()
+    cfg['theme'] = name.upper()
+    save_config(cfg)
+    print_success(f'Theme switched to {name.upper()} (saved to config).')
+
+def theme_selector():
+    print_section('THEME SELECTOR')
+    names = list(THEMES.keys())
+    for i, n in enumerate(names, 1):
+        r, g, b = THEMES[n]['G1']
+        print(f'  {i}. {c(r,g,b)}{BOLD}{n}{RESET}')
+    ch = get_input(f"{BOLD}Select theme (1-{len(names)}): {RESET}")
+    if ch and ch.isdigit() and 1 <= int(ch) <= len(names):
+        apply_theme(names[int(ch) - 1])
+    else:
+        print_error('Invalid choice.')
+
+# ---------- 74. RANSOMWARE KILL-SWITCH TRAP ----------
+BAIT_DIR = os.path.join(os.path.expanduser("~"), "netherx_bait")
+RANSOM_LOG = os.path.join(os.path.expanduser("~"), ".netherx_ransom_log.json")
+
+def _hash_file(p):
+    try:
+        with open(p, 'rb') as f:
+            return hashlib.sha256(f.read()).hexdigest()
+    except Exception:
+        return None
+
+def _find_writer(fp):
+    try:
+        if sys.platform == 'win32':
+            r = subprocess.run(['powershell', '-Command',
+                "Get-Process | Sort-Object StartTime -Descending | Select-Object -First 3 Name,Id"],
+                capture_output=True, text=True, timeout=5)
+            return r.stdout.strip().replace('\n', ' | ') or None
+        else:
+            r = subprocess.run(['lsof', fp], capture_output=True, text=True, timeout=5)
+            lines = r.stdout.strip().splitlines()
+            if len(lines) > 1:
+                return lines[1].split()[0] + ' (PID ' + lines[1].split()[1] + ')'
+    except Exception:
+        pass
+    return None
+
+def ransomware_kill_switch():
+    print_info('Ransomware Kill-Switch Trap (Crypto-Honeypot)')
+    os.makedirs(BAIT_DIR, exist_ok=True)
+    baits = ['payroll_2026.xlsx', 'passwords_master.docx', 'bank_backup.zip', 'family_photos.rar', 'wallet_seed.txt']
+    for b in baits:
+        fp = os.path.join(BAIT_DIR, b)
+        if not os.path.exists(fp):
+            with open(fp, 'w') as f:
+                f.write('NETHERX CANARY FILE - DO NOT ENCRYPT - ' + b + '\n' + ('A' * 500))
+    baseline = {os.path.join(BAIT_DIR, b): _hash_file(os.path.join(BAIT_DIR, b)) for b in baits}
+    base_files = set(os.listdir(BAIT_DIR))
+    print_success(f'Bait vault armed: {BAIT_DIR}')
+    print(f'  {len(baits)} decoy files planted (fake payroll, passwords, wallet).')
+    print_info('Monitoring for encryption/tampering... Press Ctrl+C to disarm.')
+    print(f"{RED}{BOLD}If ANY process touches these files, it will be flagged & trapped.{RESET}\n")
+    try:
+        while True:
+            time.sleep(2)
+            current = set(os.listdir(BAIT_DIR))
+            new_files = current - base_files
+            for fp, h0 in baseline.items():
+                h1 = _hash_file(fp)
+                gone = h1 is None
+                if gone or h1 != h0:
+                    ts = datetime.now(timezone.utc).isoformat()
+                    print()
+                    print(f"{RED}{BOLD}{'='*70}{RESET}")
+                    print(f"{RED}{BOLD}  🚨 RANSOMWARE BEHAVIOR DETECTED!{RESET}  {CYAN}{ts}{RESET}")
+                    print(f"{RED}{BOLD}{'='*70}{RESET}")
+                    print(f"  {BOLD}Trapped file:{RESET}   {YELLOW}{os.path.basename(fp)}{RESET}")
+                    print(f"  {BOLD}Event:{RESET}          {'FILE DELETED/LOCKED' if gone else 'CONTENT MODIFIED (encryption pattern)'}")
+                    writer = _find_writer(fp)
+                    if writer:
+                        print(f"  {BOLD}Suspect process:{RESET} {RED}{writer}{RESET}")
+                    notes = [f for f in new_files if any(k in f.lower() for k in ['readme', 'decrypt', 'ransom', 'txt', 'html'])]
+                    if notes:
+                        print(f"  {BOLD}Ransom note dropped:{RESET} {RED}{', '.join(notes)}{RESET}")
+                    try:
+                        logs = json.load(open(RANSOM_LOG)) if os.path.exists(RANSOM_LOG) else []
+                        logs.append({'timestamp': ts, 'file': fp, 'event': 'deleted' if gone else 'modified', 'suspect': writer})
+                        json.dump(logs, open(RANSOM_LOG, 'w'), indent=2)
+                        print(f"  {GREEN}[+] Evidence saved: {RANSOM_LOG}{RESET}")
+                    except Exception:
+                        pass
+                    print(f"{RED}{BOLD}{'='*70}{RESET}\n")
+                    baseline[fp] = h1
+            base_files = current
+    except KeyboardInterrupt:
+        print()
+        print_info('Kill-Switch Trap disarmed. Vault intact.')
+
+# ---------- 75. RAM GHOST EXTRACTOR ----------
+GHOST_PATTERNS = [
+    ('PLAIN PASSWORD', re.compile(r'(?i)(password|passwd|pwd)\s*[=:]\s*\S{4,}')),
+    ('API KEY', re.compile(r'\b(?:ghp_[0-9a-zA-Z]{36}|AKIA[0-9A-Z]{16}|sk-[0-9a-zA-Z]{20,}|xox[baprs]-[0-9a-zA-Z-]+)\b')),
+    ('PRIVATE KEY', re.compile(r'-----BEGIN [A-Z ]*PRIVATE KEY-----')),
+    ('JWT TOKEN', re.compile(r'\beyJ[0-9a-zA-Z_-]{10,}\.[0-9a-zA-Z_-]{10,}\.[0-9a-zA-Z_-]{5,}\b')),
+    ('SESSION/TOKEN', re.compile(r'(?i)(session|token|sid)=[0-9a-zA-Z_-]{16,}')),
+    ('URL/BEACON', re.compile(r'https?://[0-9a-zA-Z./_?=&%-]+')),
+]
+
+def _hunt_text(text, src):
+    out = []
+    for kind, rx in GHOST_PATTERNS:
+        for m in rx.finditer(text):
+            out.append((kind, src, m.group(0)))
+    return out
+
+def ram_ghost_extractor():
+    print_info('RAM Ghost Extractor (Memory Forensics)')
+    print(' 1. Live process memory hunt (this system)')
+    print(' 2. Analyze a memory dump file')
+    ch = get_input(f"{BOLD}Select (1-2): {RESET}")
+    findings = []
+    if ch == '1':
+        print_info('Scanning live process memory for ghost secrets...')
+        if sys.platform == 'win32':
+            print_warn('Live scan limited on Windows - scanning own environment only. Use Option 2 for dumps.')
+            findings += _hunt_text('\n'.join(f'{k}={v}' for k, v in os.environ.items()), 'OWN-ENV')
+        else:
+            for pid in [p for p in os.listdir('/proc') if p.isdigit()][:200]:
+                try:
+                    with open(f'/proc/{pid}/cmdline', 'rb') as f:
+                        cmd = f.read().replace(b'\x00', b' ').decode(errors='ignore')
+                    with open(f'/proc/{pid}/environ', 'rb') as f:
+                        env = f.read().replace(b'\x00', b'\n').decode(errors='ignore')
+                    name = cmd[:40] or f'PID {pid}'
+                    findings += _hunt_text(env, f'{name} (environ)')
+                    findings += _hunt_text(cmd, f'{name} (cmdline)')
+                except Exception:
+                    continue
+    elif ch == '2':
+        path = get_input(f"{BOLD}Enter dump file path: {RESET}")
+        if not path or not os.path.exists(path):
+            print_error('File not found.'); return
+        with open(path, 'rb') as f:
+            data = f.read(20 * 1024 * 1024)
+        findings += _hunt_text(data.decode('utf-8', errors='ignore'), os.path.basename(path))
+    else:
+        print_error('Invalid choice.'); return
+    print_section('RAM GHOST EXTRACTION RESULTS')
+    if findings:
+        print_warn(f'{len(findings)} ghost artifacts pulled from memory:')
+        for kind, src, sample in findings[:40]:
+            print(f"  {RED}[{kind}]{RESET} {GRAY}({src}){RESET} {CYAN}{sample[:90]}{RESET}")
+    else:
+        print_success('No credential ghosts found in scanned memory.')
+    try:
+        s = '\n'.join(f'{k}: {smp[:60]}' for k, _, smp in findings[:20])
+        if s:
+            prompt = f"These artifacts were extracted from memory. Explain the forensic value and how defenders use them:\n\n{s}"
+            ai_assess(prompt)
+    except Exception as e:
+        print_error(f'AI analysis failed: {e}')
+
+# ---------- 76. ZERO-CLICK CHAIN REACTOR ----------
+def zero_click_chain_reactor():
+    target = safe_domain(get_input(f"{BOLD}Enter target domain/IP (authorized testing only): {RESET}"))
+    if not target: print_error('No target.'); return
+    print_info('Probing attack surface (zero-click vectors)...')
+    svc_map = {21:'FTP',22:'SSH',25:'SMTP',80:'HTTP',443:'HTTPS',445:'SMB',1433:'MSSQL',3306:'MySQL',3389:'RDP',5900:'VNC',8080:'HTTP-Proxy',8443:'HTTPS-Alt'}
+    open_ports = []
+    for port in svc_map:
+        try:
+            s = socket.create_connection((target, port), timeout=2)
+            s.close()
+            open_ports.append(port)
+        except Exception:
+            continue
+    server = ''
+    try:
+        req = urllib.request.Request(f'https://{target}', headers={'User-Agent': 'NetherX/6.0'})
+        with urllib.request.urlopen(req, timeout=6) as r:
+            server = r.headers.get('Server', '')
+    except Exception:
+        pass
+    print_section('ATTACK SURFACE')
+    print(f' Open ports:   {[f"{p}/{svc_map[p]}" for p in open_ports] or "none"}')
+    if server: print(f' Server banner: {server}')
+    if not open_ports:
+        print_warn('No common ports open - chain reactor needs a surface.'); return
+    try:
+        nodes = [f"{p}/{svc_map[p]}" for p in open_ports]
+        prompt = (f"Target {target} has open ports: {nodes}, server banner: '{server}'. "
+                  "Act as an elite red-teamer. Build a ZERO-CLICK attack chain graph chaining known CVEs "
+                  "(e.g., SMB->EternalBlue, RDP->BlueKeep, HTTP->RCE) from initial access to full compromise. "
+                  "Output as plain-text arrows like [445/SMB] -> CVE-2017-0144 -> SYSTEM. Max 6 hops. "
+                  "Then one line: how a defender breaks this chain. Educational/authorized context only.")
+        print(f"\n{MAGENTA}{BOLD}--- ZERO-CLICK CHAIN GRAPH ---{RESET}")
+        ai_assess(prompt)
+    except Exception as e:
+        print_error(f'Chain generation failed: {e}')
+
+MENU_ELITE = [
+    ("74", RED,     "Ransom Trap"),
+    ("75", MAGENTA, "RAM Ghost"),
+    ("76", YELLOW,  "Chain Reactor"),
+    ("77", CYAN,    "Theme Selector"),
+]
+
+# ==========================================
 # MAIN LOOP
 # ==========================================
 
@@ -4138,7 +4373,7 @@ def main():
     get_input(f"{BOLD}Press Enter to launch NetherX...{RESET}")
     while True:
         show_menu()
-        choice = get_input(f"\n{G1}NetherX@CyberSecurity:~${RESET} {BOLD}{G2}select (1-73){RESET} {G1}❯{RESET} ")
+        choice = get_input(f"\n{G1}NetherX@CyberSecurity:~${RESET} {BOLD}{G2}select (1-77){RESET} {G1}❯{RESET} ")
         if choice is None:
             print(f"\n{GREEN}[*] Exiting System. Stay Safe!{RESET}")
             sys.exit(0)
@@ -4172,7 +4407,7 @@ def main():
             continue
 
         # Options that don't need sandbox
-        no_sandbox_options = {'6', '11', '14', '15', '19', '20', '21', '22', '25', '26', '27', '28', '30', '33', '35', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '49', '50', '51', '54', '57', '59', '60', '61', '62', '63', '69', '70', '71', '72', '73'}
+        no_sandbox_options = {'6', '11', '14', '15', '19', '20', '21', '22', '25', '26', '27', '28', '30', '33', '35', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '49', '50', '51', '54', '57', '59', '60', '61', '62', '63', '69', '70', '71', '72', '73', '74', '75', '76', '77'}
 
         if choice in no_sandbox_options:
             try:
@@ -4260,6 +4495,14 @@ def main():
                     encoding_toolkit()
                 elif choice == '73':
                     github_update_checker()
+                elif choice == '74':
+                    ransomware_kill_switch()
+                elif choice == '75':
+                    ram_ghost_extractor()
+                elif choice == '76':
+                    zero_click_chain_reactor()
+                elif choice == '77':
+                    theme_selector()
             except Exception as e:
                 print_error(f'Option {choice} failed: {e}')
             press_enter()
