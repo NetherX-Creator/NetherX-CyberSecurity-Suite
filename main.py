@@ -1361,54 +1361,73 @@ def match_port_vulnerabilities(sandbox, target):
         except Exception as e:
             print_error(f'AI CVE correlation failed: {e}')
 
-def whois_geo_tracker(sandbox, target):
+def whois_geo_tracker(target):
     target = safe_domain(target)
     if not validate_domain(target): return
-    print_info(f'Resolving {target} and gathering WHOIS + geo data...')
+    print_info(f'Resolving {target} - RDAP WHOIS + geo (no sandbox, fast)...')
     whois_text = ''
-    if sandbox:
-        try:
-            sandbox.process.exec('sudo apt update -y > /dev/null 2>&1 && sudo apt install -y whois dnsutils > /dev/null 2>&1')
-        except Exception as e:
-            print_warn(f'Package install warning: {e}')
-        try:
-            whois_res = sandbox.process.exec(f'whois {target} | head -n 40')
-            whois_text = whois_res.result if hasattr(whois_res, 'result') else str(whois_res)
-            print_section('WHOIS REGISTRAR DATA')
-            print(whois_text)
-        except Exception as e:
-            print_error(f'WHOIS failed: {e}')
-    geo_output = ''
-    if sandbox:
-        try:
-            script = f"""
-import json, socket, urllib.request
-target = {json.dumps(target)}
-try:
-    ip = socket.gethostbyname(target)
-    print('Resolved IP: ' + ip)
-    url = 'http://ip-api.com/json/' + ip + '?fields=status,message,country,regionName,city,isp,org,as,query'
-    with urllib.request.urlopen(url, timeout=10) as resp:
-        data = json.loads(resp.read().decode())
-    if data.get('status') == 'success':
-        print('Country:      ' + str(data.get('country')))
-        print('Region:       ' + str(data.get('regionName')))
-        print('City:         ' + str(data.get('city')))
-        print('ISP:          ' + str(data.get('isp')))
-        print('Organization: ' + str(data.get('org')))
-        print('ASN:          ' + str(data.get('as')))
-    else:
-        print('Geo lookup failed: ' + str(data.get('message')))
-except Exception as e:
-    print('[!] Error: ' + str(e))
-"""
-            geo_output = run_remote_python(sandbox, script)
-            print_section('IP GEO-LOCATION')
-            print(geo_output)
-        except Exception as e:
-            print_error(f'Geo lookup failed: {e}')
+    # 1) RDAP WHOIS (pure HTTPS - no apt install)
     try:
-        prompt = f"Summarize infrastructure risk for '{target}' based on WHOIS and geo data:\n\n{whois_text}\n\n{geo_output}"
+        req = urllib.request.Request(f'https://rdap.org/domain/{target}',
+                                     headers={'User-Agent': 'NetherX/6.0', 'Accept': 'application/rdap+json'})
+        with urllib.request.urlopen(req, timeout=12) as resp:
+            data = json.loads(resp.read().decode('utf-8', errors='ignore'))
+        lines = [f"Domain: {data.get('ldhName', target)}"]
+        if data.get('status'): lines.append(f"Status: {', '.join(data.get('status'))}")
+        for ev in data.get('events', []):
+            lines.append(f"{ev.get('eventAction','?')}: {str(ev.get('eventDate','?'))[:10]}")
+        for ent in data.get('entities', []):
+            try:
+                roles = ent.get('roles', [])
+                va = ent.get('vcardArray')
+                name = ''
+                if isinstance(va, list) and len(va) > 1:
+                    for item in va[1]:
+                        if isinstance(item, list) and item and item[0] == 'fn':
+                            name = item[3]
+                if roles or name:
+                    lines.append(f"{'/'.join(roles) or 'entity'}: {name or ent.get('handle','?')}")
+            except Exception:
+                continue
+        ns = data.get('nameservers', [])
+        if ns:
+            lines.append("Nameservers: " + ', '.join(n.get('ldhName','?') for n in ns[:4]))
+        whois_text = '\n'.join(lines)
+        print_section('WHOIS / RDAP REGISTRAR DATA')
+        print(whois_text)
+    except urllib.error.HTTPError as e:
+        print_warn(f'RDAP HTTP {e.code} - TLD RDAP support nahi karta ya domain not found.')
+    except Exception as e:
+        print_error(f'RDAP lookup failed: {e}')
+    # 2) GEO (2 fallbacks, short timeouts)
+    geo_output = ''
+    try:
+        ip = socket.gethostbyname(target)
+        gl = [f'Resolved IP: {ip}']
+        got = False
+        try:
+            req = urllib.request.Request(f'http://ip-api.com/json/{ip}?fields=status,country,regionName,city,isp,org,as',
+                                         headers={'User-Agent': 'NetherX/6.0'})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                d = json.loads(resp.read().decode())
+            if d.get('status') == 'success':
+                gl += [f"Country: {d.get('country')}", f"Region: {d.get('regionName')}", f"City: {d.get('city')}",
+                       f"ISP: {d.get('isp')}", f"Org: {d.get('org')}", f"ASN: {d.get('as')}"]
+                got = True
+        except Exception:
+            pass
+        if not got:
+            req = urllib.request.Request(f'https://ipinfo.io/{ip}/json', headers={'User-Agent': 'NetherX/6.0'})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                d = json.loads(resp.read().decode())
+            gl += [f"Country: {d.get('country')}", f"City: {d.get('city')}", f"Org: {d.get('org')}"]
+        geo_output = '\n'.join(gl)
+        print_section('IP GEO-LOCATION')
+        print(geo_output)
+    except Exception as e:
+        print_error(f'Geo lookup failed: {e}')
+    try:
+        prompt = f"Summarize infrastructure risk for '{target}' based on WHOIS and geo data:\n{whois_text}\n{geo_output}"
         ai_assess(prompt)
     except Exception as e:
         print_error(f'AI summary failed: {e}')
@@ -4589,7 +4608,7 @@ def main():
             continue
 
         # Options that don't need sandbox
-        no_sandbox_options = {'6', '11', '14', '15', '19', '20', '21', '22', '25', '26', '27', '28', '30', '33', '35', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '49', '50', '51', '54', '57', '59', '60', '61', '62', '63', '69', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '80'}
+        no_sandbox_options = {'6', '11', '14', '15', '18', '19', '20', '21', '22', '25', '26', '27', '28', '30', '33', '35', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '49', '50', '51', '54', '57', '59', '60', '61', '62', '63', '69', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '80'}
 
         if choice in no_sandbox_options:
             try:
@@ -4607,6 +4626,10 @@ def main():
                     jwt_analyzer()
                 elif choice == '15':
                     secret_scanner()
+                elif choice == '18':
+                    target = get_input(f"{BOLD}Enter target domain: {RESET}")
+                    if target:
+                        whois_geo_tracker(target)
                 elif choice == '19':
                     wifi_security_auditor()
                 elif choice == '20':
@@ -4788,8 +4811,8 @@ def main():
                 target = get_input(f"{BOLD}Enter target domain: {RESET}")
                 if target:
                     sandbox = create_cloud_sandbox()
-                    if sandbox:
-                        whois_geo_tracker(sandbox, target)
+                if sandbox:
+                    whois_geo_tracker(sandbox, target)
 
             elif choice == '23':
                 sandbox = create_cloud_sandbox()
