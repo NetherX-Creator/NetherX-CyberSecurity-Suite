@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org)
 [![AI Engine](https://img.shields.io/badge/AI-OpenRouter%20LLM-orange?style=for-the-badge)](https://openrouter.ai)
 [![Cloud Sandbox](https://img.shields.io/badge/Sandbox-Daytona%20Cloud-green?style=for-the-badge)](https://app.daytona.io)
-[![Modules](https://img.shields.io/badge/Modules-80-red?style=for-the-badge)](#)
+[![Modules](https://img.shields.io/badge/Modules-85-red?style=for-the-badge)](#)
 [![Version](https://img.shields.io/badge/Version-6.1%20Ultra-purple?style=for-the-badge)](#)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/MayErj6NPf)
 
@@ -40,7 +40,7 @@
 
 ## 🔰 Overview
 
-**NetherX Cybersecurity Suite** is an all-in-one, AI-powered cybersecurity framework built for security researchers, SOC analysts, CTF players, students, and defenders. It combines **80 specialized modules** covering network reconnaissance, web application security, digital forensics, cloud/DevSecOps auditing, threat intelligence, and incident response — all enhanced with **LLM-driven analysis (OpenRouter)** and **isolated cloud execution (Daytona Sandbox)** so dangerous operations never touch your local machine.
+**NetherX Cybersecurity Suite** is an all-in-one, AI-powered cybersecurity framework built for security researchers, SOC analysts, CTF players, students, and defenders. It combines **85 specialized modules** covering network reconnaissance, web application security, digital forensics, cloud/DevSecOps auditing, threat intelligence, and incident response — all enhanced with **LLM-driven analysis (OpenRouter)** and **isolated cloud execution (Daytona Sandbox)** so dangerous operations never touch your local machine.
 
 > ⚠️ **This tool is built for EDUCATION, AUTHORIZED TESTING, and DEFENSIVE RESEARCH only.**
 
