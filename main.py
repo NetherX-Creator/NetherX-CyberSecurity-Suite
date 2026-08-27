@@ -165,7 +165,7 @@ RESET   = "\033[0m"
 import random
 
 # ==========================================
-# MATRIX HACKER THEME ENGINE (v6.0 Pro UI)
+# MATRIX HACKER THEME ENGINE (v6.1 Pro UI)
 # ==========================================
 START_TIME = time.time()
 
@@ -197,7 +197,7 @@ NETHERX_ASCII = [
 def show_banner():
     w = 101
     print()
-    print(grad_text("=== NETHERX v6.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
+    print(grad_text("=== NETHERX v6.1 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
     for i, line in enumerate(NETHERX_ASCII):
         print(grad_text(line.center(w), MLIME, shift=i * 2))
     print(grad_text(">> Knowledge. Exploit. Control. <<".center(w), MGREEN))
@@ -206,7 +206,7 @@ def show_banner():
 def show_banner():
     w = 101
     print()
-    print(grad_text("=== NETHERX v6.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
+    print(grad_text("=== NETHERX v6.1 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
     for i, line in enumerate(NETHERX_ASCII):
         print(grad_text(line.center(w), MLIME, shift=i * 3))
     print(grad_text(">> Knowledge. Exploit. Control. <<".center(w), MGREEN))
@@ -455,7 +455,7 @@ def show_banner():
     print()
     if s:
         print(f"{GD}{_rain(w + 8)}{RESET}")
-    print(grad_text("=== NETHERX v6.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
+    print(grad_text("=== NETHERX v6.1 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
     for i, line in enumerate(NETHERX_ASCII):
         r = f"{GD}{_rain(s)}{RESET}" if s else ""
         print(r + grad_text(line.center(w), MLIME, shift=i * 2) + r)
@@ -482,7 +482,7 @@ def mbox_line(text):
 def show_banner():
     w = 101
     print()
-    print(grad_text("=== NETHERX v6.0 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
+    print(grad_text("=== NETHERX v6.1 Pro — Advanced Cybersecurity Suite ===".center(w), MGREEN))
     for i, line in enumerate(NETHERX_ASCII):
         print(grad_text(line.center(w), MLIME, shift=i * 2))
     print(grad_text(">> Knowledge. Exploit. Control. <<".center(w), MGREEN))
@@ -509,6 +509,7 @@ def show_menu():
         ("UTILITY & PRIVACY", MENU_UTILS),
         ("ELITE FORENSICS & RED TEAM", MENU_ELITE),
         ("APT DEFENSE LAB", MENU_APT),
+        ("SECURITY LAB", MENU_V61),
     ]
     for i, (title, items) in enumerate(sections):
         if i > 0:
@@ -1360,6 +1361,23 @@ def match_port_vulnerabilities(sandbox, target):
             ai_assess(prompt)
         except Exception as e:
             print_error(f'AI CVE correlation failed: {e}')
+def _resolve_ip(target):
+    try:
+        return socket.gethostbyname(target)
+    except Exception:
+        pass
+    for url in (f'https://dns.google/resolve?name={target}&type=A',
+                f'https://cloudflare-dns.com/dns-query?name={target}&type=A'):
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'NetherX/6.1', 'Accept': 'application/dns-json'})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                d = json.loads(resp.read().decode())
+            for ans in d.get('Answer', []):
+                if ans.get('type') == 1:
+                    return ans.get('data')
+        except Exception:
+            continue
+    return None
 
 def whois_geo_tracker(target):
     target = safe_domain(target)
@@ -1369,7 +1387,7 @@ def whois_geo_tracker(target):
     # 1) RDAP WHOIS (pure HTTPS - no apt install)
     try:
         req = urllib.request.Request(f'https://rdap.org/domain/{target}',
-                                     headers={'User-Agent': 'NetherX/6.0', 'Accept': 'application/rdap+json'})
+                                     headers={'User-Agent': 'NetherX/6.1', 'Accept': 'application/rdap+json'})
         with urllib.request.urlopen(req, timeout=12) as resp:
             data = json.loads(resp.read().decode('utf-8', errors='ignore'))
         lines = [f"Domain: {data.get('ldhName', target)}"]
@@ -1400,32 +1418,36 @@ def whois_geo_tracker(target):
     except Exception as e:
         print_error(f'RDAP lookup failed: {e}')
     # 2) GEO (2 fallbacks, short timeouts)
-    geo_output = ''
-    try:
-        ip = socket.gethostbyname(target)
-        gl = [f'Resolved IP: {ip}']
-        got = False
+        geo_output = ''
+    ip = _resolve_ip(target)
+    if not ip:
+        print_warn('No A record / DNS fail - domain parked ya hosted nahi. Geo skipped.')
+        geo_output = 'No A record (domain not hosted)'
+    else:
         try:
-            req = urllib.request.Request(f'http://ip-api.com/json/{ip}?fields=status,country,regionName,city,isp,org,as',
-                                         headers={'User-Agent': 'NetherX/6.0'})
-            with urllib.request.urlopen(req, timeout=8) as resp:
-                d = json.loads(resp.read().decode())
-            if d.get('status') == 'success':
-                gl += [f"Country: {d.get('country')}", f"Region: {d.get('regionName')}", f"City: {d.get('city')}",
-                       f"ISP: {d.get('isp')}", f"Org: {d.get('org')}", f"ASN: {d.get('as')}"]
-                got = True
-        except Exception:
-            pass
-        if not got:
-            req = urllib.request.Request(f'https://ipinfo.io/{ip}/json', headers={'User-Agent': 'NetherX/6.0'})
-            with urllib.request.urlopen(req, timeout=8) as resp:
-                d = json.loads(resp.read().decode())
-            gl += [f"Country: {d.get('country')}", f"City: {d.get('city')}", f"Org: {d.get('org')}"]
-        geo_output = '\n'.join(gl)
-        print_section('IP GEO-LOCATION')
-        print(geo_output)
-    except Exception as e:
-        print_error(f'Geo lookup failed: {e}')
+            gl = [f'Resolved IP: {ip}']
+            got = False
+            try:
+                req = urllib.request.Request(f'http://ip-api.com/json/{ip}?fields=status,country,regionName,city,isp,org,as',
+                                             headers={'User-Agent': 'NetherX/6.1'})
+                with urllib.request.urlopen(req, timeout=8) as resp:
+                    d = json.loads(resp.read().decode())
+                if d.get('status') == 'success':
+                    gl += [f"Country: {d.get('country')}", f"Region: {d.get('regionName')}", f"City: {d.get('city')}",
+                           f"ISP: {d.get('isp')}", f"Org: {d.get('org')}", f"ASN: {d.get('as')}"]
+                    got = True
+            except Exception:
+                pass
+            if not got:
+                req = urllib.request.Request(f'https://ipinfo.io/{ip}/json', headers={'User-Agent': 'NetherX/6.1'})
+                with urllib.request.urlopen(req, timeout=8) as resp:
+                    d = json.loads(resp.read().decode())
+                gl += [f"Country: {d.get('country')}", f"City: {d.get('city')}", f"Org: {d.get('org')}"]
+            geo_output = '\n'.join(gl)
+            print_section('IP GEO-LOCATION')
+            print(geo_output)
+        except Exception as e:
+            print_error(f'Geo lookup failed: {e}')
     try:
         prompt = f"Summarize infrastructure risk for '{target}' based on WHOIS and geo data:\n{whois_text}\n{geo_output}"
         ai_assess(prompt)
@@ -2937,6 +2959,12 @@ def print_general_help():
     print(f"{BOLD}78. Supply Chain Guard:{RESET} Typosquat + maturity + sha256 + OSV audit for packages.")
     print(f"{BOLD}79. Ransom Defense:{RESET} Double-extortion readiness score (backups, shadows, exfil).")
     print(f"{BOLD}80. Kill Chain Visual:{RESET} Interactive 7-stage kill chain with real defenses.")
+    print(f"\n{BOLD}{BLUE}v6.1 Security Lab{RESET}")
+    print(f"{BOLD}81. Email Forensics:{RESET} Header parse - origin IP, SPF/DKIM/DMARC, spoof score.")
+    print(f"{BOLD}82. QR Quish Scan:{RESET} QR image/URL decode + redirect chase + brand impersonation.")
+    print(f"{BOLD}83. APK Analyzer:{RESET} Permissions, packers, URLs, packed assets + risk score.")
+    print(f"{BOLD}84. Hacking Lab:{RESET} Local vulnerable app - SQLi/XSS/IDOR/Cmdi practice missions.")
+    print(f"{BOLD}85. WiFi Handshake:{RESET} PCAP EAPOL handshake detection + hardening guide.")
 
 # ==========================================
 # 57. HONEYTOKEN THREAT TRACKER v3.0
@@ -3037,12 +3065,20 @@ _TRACKER_HTML_PARTS = [
     '</div>',
     '<script>',
     '(function(){',
-    'var d={t:new Date().toISOString(),ua:navigator.userAgent,p:navigator.platform,v:navigator.vendor||"",lang:navigator.language,langs:(navigator.languages||[]).join(","),cookie:navigator.cookieEnabled,online:navigator.onLine,dnt:navigator.doNotTrack,touch:"ontouchstart"in window,webdriver:navigator.webdriver||false,cores:navigator.hardwareConcurrency||0,ram:navigator.deviceMemory||0,screen:{w:screen.width,h:screen.height,aw:screen.availWidth,ah:screen.availHeight,d:screen.colorDepth},vp:{w:window.innerWidth,h:window.innerHeight,dpr:window.devicePixelRatio||1},ref:document.referrer,url:location.href,tz:Intl.DateTimeFormat().resolvedOptions().timeZone,tzOff:new Date().getTimezoneOffset()};',
-    'try{var c=document.createElement("canvas").getContext("2d");c.textBaseline="top";c.font="14px Arial";c.fillText("NXv3 "+new Date,2,2);d.canvas=c.canvas.toDataURL().slice(-20);}catch(e){}',
-    'try{var g=document.createElement("canvas").getContext("webgl")||document.createElement("canvas").getContext("experimental-webgl");if(g){var x=g.getExtension("WEBGL_debug_renderer_info");d.gpu={v:g.getParameter(x?x.UNMASKED_VENDOR_WEBGL:g.VENDOR),r:g.getParameter(x?x.UNMASKED_RENDERER_WEBGL:g.RENDERER)};}}catch(e){}',
-    'try{var rtcIps=[];var pc=new RTCPeerConnection({iceServers:[]});pc.createDataChannel("");pc.createOffer().then(function(o){pc.setLocalDescription(o);});setTimeout(function(){var sdp=pc.localDescription?pc.localDescription.sdp:"";var m=sdp.match(/([0-9]+[.][0-9]+[.][0-9]+[.][0-9]+)/g);if(m){m.forEach(function(ip){if(rtcIps.indexOf(ip)===-1)rtcIps.push(ip);});}if(rtcIps.length)d.rtc=rtcIps;_send();},800);}catch(e){d.rtcErr=e.message;_send();}',
-    'function _send(){var payload=JSON.stringify(d);if(navigator.sendBeacon){navigator.sendBeacon("/collect",payload);}else{fetch("/collect",{method:"POST",headers:{"Content-Type":"application/json"},body:payload,keepalive:true}).catch(function(){});}setTimeout(function(){window.location.href=__REDIRECT__;},1200);}',
-    '})();',
+    'var d={t:new Date().toISOString(),ua:navigator.userAgent,p:navigator.platform,v:navigator.vendor||"",lang:navigator.language,langs:(navigator.languages||[]).join(","),cookie:navigator.cookieEnabled,online:navigator.onLine,dnt:navigator.doNotTrack,touch:"ontouchstart"in window,maxTouch:navigator.maxTouchPoints||0,webdriver:navigator.webdriver||false,cores:navigator.hardwareConcurrency||0,ram:navigator.deviceMemory||0,screen:{w:screen.width,h:screen.height,aw:screen.availWidth,ah:screen.availHeight,d:screen.colorDepth},vp:{w:window.innerWidth,h:window.innerHeight,dpr:window.devicePixelRatio||1},ref:document.referrer,url:location.href,tz:Intl.DateTimeFormat().resolvedOptions().timeZone,tzOff:new Date().getTimezoneOffset(),localTime:new Date().toString(),orient:(screen.orientation&&screen.orientation.type)||"",winPos:{x:window.screenX,y:window.screenY,ow:window.outerWidth,oh:window.outerHeight},hist:history.length,chrome:!!window.chrome,dark:!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches),hdr:!!(window.matchMedia&&matchMedia("(dynamic-range: high)").matches)};',
+'try{var c=document.createElement("canvas").getContext("2d");c.textBaseline="top";c.font="14px Arial";c.fillText("NXv3 "+new Date,2,2);d.canvas=c.canvas.toDataURL().slice(-20);}catch(e){}',
+'try{var g=document.createElement("canvas").getContext("webgl")||document.createElement("canvas").getContext("experimental-webgl");if(g){var x=g.getExtension("WEBGL_debug_renderer_info");d.gpu={v:g.getParameter(x?x.UNMASKED_VENDOR_WEBGL:g.VENDOR),r:g.getParameter(x?x.UNMASKED_RENDERER_WEBGL:g.RENDERER),ver:String(g.getParameter(g.VERSION)).slice(0,60),sl:String(g.getParameter(g.SHADING_LANGUAGE_VERSION)).slice(0,40),mt:g.getParameter(g.MAX_TEXTURE_SIZE)};}}catch(e){}',
+'var jobs=[];',
+'try{if(navigator.getBattery){jobs.push(navigator.getBattery().then(function(b){d.battery={lvl:Math.round(b.level*100),charging:b.charging};}).catch(function(){}));}}catch(e){}',
+'try{if(navigator.connection){var cn=navigator.connection;d.conn={type:cn.effectiveType||cn.type,dl:cn.downlink,rtt:cn.rtt,save:cn.saveData};}}catch(e){}',
+'try{if(navigator.storage&&navigator.storage.estimate){jobs.push(navigator.storage.estimate().then(function(s){d.storage={quota:Math.round((s.quota||0)/1048576)+"MB",used:Math.round((s.usage||0)/1048576)+"MB"};}).catch(function(){}));}}catch(e){}',
+'try{if(navigator.mediaDevices&&navigator.mediaDevices.enumerateDevices){jobs.push(navigator.mediaDevices.enumerateDevices().then(function(l){var c=0,m=0,s=0;l.forEach(function(x){if(x.kind==="videoinput")c++;else if(x.kind==="audioinput")m++;else s++;});d.media={cams:c,mics:m,spks:s};}).catch(function(){}));}}catch(e){}',
+'try{var AC=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(AC){var ac=new AC(1,5000,44100);var o=ac.createOscillator();var gn=ac.createGain();o.connect(gn);gn.connect(ac.destination);o.start(0);jobs.push(ac.startRendering().then(function(buf){var sum=0;for(var i=0;i<buf.length;i++){sum+=Math.abs(buf.getChannelData(0)[i]);}d.audio=sum.toFixed(6);}).catch(function(){}));}}catch(e){}',
+'try{var fonts=["Arial","Courier New","Georgia","Times New Roman","Verdana","Comic Sans MS","Consolas","Tahoma"];var sp=document.createElement("span");sp.style.cssText="font-size:72px;visibility:hidden;position:absolute";sp.textContent="mmMwWLliI0O&1";document.body.appendChild(sp);var bw=sp.offsetWidth;var fd=[];fonts.forEach(function(f){sp.style.fontFamily=f;if(sp.offsetWidth!==bw)fd.push(f);});document.body.removeChild(sp);d.fonts=fd.join(",");}catch(e){}',
+'function _send(){if(_send.done)return;_send.done=true;var payload=JSON.stringify(d);if(navigator.sendBeacon){navigator.sendBeacon("/collect",payload);}else{fetch("/collect",{method:"POST",headers:{"Content-Type":"application/json"},body:payload,keepalive:true}).catch(function(){});}setTimeout(function(){window.location.href=__REDIRECT__;},1200);}',
+'function _finish(){Promise.all(jobs).then(_send).catch(_send);setTimeout(_send,1500);}',
+'try{var rtcIps=[];var pc=new RTCPeerConnection({iceServers:[]});pc.createDataChannel("");pc.createOffer().then(function(o){pc.setLocalDescription(o);});setTimeout(function(){var sdp=pc.localDescription?pc.localDescription.sdp:"";var m=sdp.match(/([0-9]+[.][0-9]+[.][0-9]+[.][0-9]+)/g);if(m){m.forEach(function(ip){if(rtcIps.indexOf(ip)===-1)rtcIps.push(ip);});}if(rtcIps.length)d.rtc=rtcIps;_finish();},800);}catch(e){_finish();}',
+'})();',
     '</script>',
     '</body>',
     '</html>'
@@ -3182,38 +3218,62 @@ def _tracker_print_capture(entry):
     print(RED + BOLD + "  THREAT CAPTURED!" + RESET + "  " + CYAN + entry['timestamp'] + RESET)
     print(RED + BOLD + "="*70 + RESET)
     print("  " + BOLD + "IP:" + RESET + " " + YELLOW + entry['ip'] + RESET)
-    print("  " + BOLD + "UA:" + RESET + " " + GRAY + entry.get('user_agent','')[:80] + RESET)
-
+    print("  " + BOLD + "UA:" + RESET + " " + GRAY + entry.get('user_agent','')[:90] + RESET)
     geo = entry.get('geo')
     if geo:
         print()
-        print("  " + BOLD + MAGENTA + "GEO:" + RESET)
-        print("    " + geo.get('city','?') + ", " + geo.get('country','?') + " (" + geo.get('countryCode','') + ")")
-        print("    ISP: " + geo.get('isp','?') + " | Org: " + geo.get('org','?'))
-        print("    ASN: " + geo.get('as','?'))
-        print("    Coords: " + str(geo.get('lat','?')) + ", " + str(geo.get('lon','?')))
-        vpn = 'YES' if geo.get('proxy') or geo.get('hosting') else 'No'
-        vpn_color = RED if geo.get('proxy') or geo.get('hosting') else GREEN
-        print("    VPN/Proxy: " + vpn_color + vpn + RESET)
-
+        print("  " + BOLD + MAGENTA + "GEO / NETWORK:" + RESET)
+        print("    Location: " + str(geo.get('city','?')) + ", " + str(geo.get('regionName', geo.get('region','?'))) + ", " + str(geo.get('country','?')) + " (" + str(geo.get('countryCode','')) + ")")
+        print("    ISP: " + str(geo.get('isp','?')) + " | Org: " + str(geo.get('org','?')))
+        print("    ASN: " + str(geo.get('as','?')))
+        print("    Coords: " + str(geo.get('lat','?')) + ", " + str(geo.get('lon','?')) + " | ZIP: " + str(geo.get('zip','?')))
+        print("    TZ: " + str(geo.get('timezone','?')) + " | Reverse DNS: " + str(geo.get('reverse','?')))
+        flags = []
+        if geo.get('proxy'): flags.append('PROXY')
+        if geo.get('hosting'): flags.append('HOSTING/VPS')
+        if geo.get('mobile'): flags.append('MOBILE NET')
+        if flags:
+            print("    " + RED + "FLAGS: " + " | ".join(flags) + RESET)
+        else:
+            print("    " + GREEN + "FLAGS: Residential (no proxy/hosting)" + RESET)
+    ah = {k.lower(): v for k, v in entry.get('all_headers', {}).items()}
+    ch = {k: v for k, v in ah.items() if k.startswith('sec-ch-ua') or k in ('accept-language', 'accept-encoding')}
+    if ch:
+        print()
+        print("  " + BOLD + CYAN + "CLIENT HINTS (headers):" + RESET)
+        for k, v in ch.items():
+            print("    " + k + ": " + GRAY + str(v)[:80] + RESET)
     bd = entry.get('browserData')
     if bd:
         print()
-        print("  " + BOLD + CYAN + "DEVICE:" + RESET)
-        print("    Platform: " + bd.get('p','?') + " | Vendor: " + bd.get('v','?'))
-        scr = bd.get('screen', {})
-        print("    Screen: " + str(scr.get('w','?')) + "x" + str(scr.get('h','?')))
-        vp = bd.get('vp', {})
-        print("    Viewport: " + str(vp.get('w','?')) + "x" + str(vp.get('h','?')))
-        print("    CPU: " + str(bd.get('cores','?')) + " cores | RAM: " + str(bd.get('ram','?')) + "GB | Touch: " + ('Yes' if bd.get('touch') else 'No'))
-        print("    WebDriver: " + ('YES (BOT!)' if bd.get('webdriver') else 'No') + " | Online: " + ('Yes' if bd.get('online') else 'No'))
-        if bd.get('gpu'):
-            print("    GPU: " + bd['gpu'].get('r','?'))
+        print("  " + BOLD + CYAN + "DEVICE / HARDWARE:" + RESET)
+        print("    Platform: " + str(bd.get('p','?')) + " | Vendor: " + str(bd.get('v','?')))
+        print("    CPU: " + str(bd.get('cores','?')) + " cores | RAM: " + str(bd.get('ram','?')) + "GB | Touch: " + ('Yes' if bd.get('touch') else 'No') + " (max " + str(bd.get('maxTouch','?')) + ")")
+        bat = bd.get('battery')
+        if bat: print("    Battery: " + str(bat.get('lvl','?')) + "% | Charging: " + ('Yes' if bat.get('charging') else 'No'))
+        conn = bd.get('conn')
+        if conn: print("    Network: " + str(conn.get('type','?')) + " | Downlink: " + str(conn.get('dl','?')) + "Mbps | RTT: " + str(conn.get('rtt','?')) + "ms")
+        med = bd.get('media')
+        if med: print("    Devices: " + str(med.get('cams','?')) + " cam, " + str(med.get('mics','?')) + " mic, " + str(med.get('spks','?')) + " speaker")
+        st = bd.get('storage')
+        if st: print("    Storage: quota " + str(st.get('quota','?')) + " | used " + str(st.get('used','?')))
+        scr = bd.get('screen', {}); vp = bd.get('vp', {})
+        print("    Screen: " + str(scr.get('w','?')) + "x" + str(scr.get('h','?')) + " | Viewport: " + str(vp.get('w','?')) + "x" + str(vp.get('h','?')) + " | DPR: " + str(vp.get('dpr','?')))
+        print("    Orient: " + str(bd.get('orient','?')) + " | HDR: " + ('Yes' if bd.get('hdr') else 'No') + " | DarkMode: " + ('Yes' if bd.get('dark') else 'No'))
+        wp = bd.get('winPos', {})
+        print("    WinPos: " + str(wp.get('x','?')) + "," + str(wp.get('y','?')) + " | Outer: " + str(wp.get('ow','?')) + "x" + str(wp.get('oh','?')) + " | HistLen: " + str(bd.get('hist','?')))
+        print("    WebDriver: " + (RED + "YES (BOT!)" + RESET if bd.get('webdriver') else 'No') + " | ChromeObj: " + ('Yes' if bd.get('chrome') else 'No') + " | Online: " + ('Yes' if bd.get('online') else 'No'))
+        g = bd.get('gpu')
+        if g:
+            print("    GPU: " + str(g.get('r','?')) + " | Vendor: " + str(g.get('v','?')))
+            print("    GL: " + str(g.get('ver','?')) + " | MaxTex: " + str(g.get('mt','?')))
+        if bd.get('audio'): print("    Audio FP: " + str(bd['audio']))
+        if bd.get('fonts'): print("    Fonts: " + GRAY + str(bd['fonts']) + RESET)
         if bd.get('rtc'):
             print("    " + RED + "Local IPs (WebRTC leak):" + RESET + " " + ", ".join(bd['rtc']))
-        if bd.get('canvas'):
-            print("    Canvas FP: " + bd['canvas'][:30] + "...")
-
+        if bd.get('canvas'): print("    Canvas FP: " + str(bd['canvas'])[:30] + "...")
+        print("    LocalTime: " + GRAY + str(bd.get('localTime','?'))[:50] + RESET)
+        print("    TZ: " + str(bd.get('tz','?')) + " (off " + str(bd.get('tzOff','?')) + ") | Langs: " + str(bd.get('langs','?')))
     print()
     print("  " + GREEN + "[+] Saved to: " + TRACKER_LOG_FILE + RESET)
     print(RED + BOLD + "="*70 + RESET)
@@ -3439,7 +3499,7 @@ def show_developer_info():
     print()
 
 # ==================================================
-# NETHERX v6.0 PRO PACK - LIVE INTEL / BOUNTY / PRO WORKFLOW
+# NETHERX v6.1 PRO PACK - LIVE INTEL / BOUNTY / PRO WORKFLOW
 # ==================================================
 REPORT_FINDINGS = []
 
@@ -3954,7 +4014,7 @@ def pentest_report_generator():
     html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>NetherX Pentest Report</title>
 <style>body{{font-family:Segoe UI,Arial;background:#0f1117;color:#eee;padding:40px}}h1{{color:#667eea}}table{{width:100%;border-collapse:collapse;margin-top:20px}}td,th{{border:1px solid #333;padding:8px;text-align:left;font-size:14px}}th{{background:#1c2030}}</style></head>
 <body><h1>🛡️ NetherX Penetration Test Report</h1>
-<p><b>Project:</b> {target}<br><b>Tester:</b> {tester}<br><b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M')}<br><b>Tool:</b> NetherX Cybersecurity Suite v6.0 Pro</p>
+<p><b>Project:</b> {target}<br><b>Tester:</b> {tester}<br><b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M')}<br><b>Tool:</b> NetherX Cybersecurity Suite v6.1 Pro</p>
 <h2>Automated Findings ({len(REPORT_FINDINGS)})</h2>
 <table><tr><th>Time</th><th>Module</th><th>Severity</th><th>Finding</th></tr>{rows or '<tr><td colspan=4>No automated findings logged this session.</td></tr>'}</table>
 <h2>Analyst Notes</h2><p>{'<br>'.join(notes) if notes else 'No additional notes.'}</p>
@@ -3992,7 +4052,7 @@ def local_ai_ollama():
         print_error(f'Ollama query failed: {e}')
 
 # ==========================================
-# v6.0 PRIVACY SHIELD + SPINNER + BOOT + UTILS
+# v6.1 PRIVACY SHIELD + SPINNER + BOOT + UTILS
 # ==========================================
 REDACT_PATTERNS = [
     (r'(ghp_[0-9a-zA-Z]{36}|AKIA[0-9A-Z]{16}|xox[baprs]-[0-9a-zA-Z-]+|sk-[A-Za-z0-9]{20,})', '[KEY_REDACTED]'),
@@ -4040,8 +4100,8 @@ def ai_assess(prompt):
 
 def boot_sequence():
     steps = [
-        ("Initializing NetherX kernel v6.0 Pro", CYAN),
-        ("Loading 73 security modules", GREEN),
+        ("Initializing NetherX kernel v6.1 Pro", CYAN),
+        ("Loading 85 security modules", GREEN),
         ("Starting AI engine (OpenRouter)", MAGENTA),
         ("Connecting Daytona cloud sandbox", CYAN),
         ("Arming privacy shield (auto-wipe mode)", GREEN),
@@ -4103,7 +4163,7 @@ def encoding_toolkit():
 
 def github_update_checker():
     print_info('Checking GitHub for latest NetherX version...')
-    LOCAL_VERSION = "6.0"
+    LOCAL_VERSION = "6.1"
     try:
         # 1) Fetch remote version file (real update detection)
         remote_version = None
@@ -4151,7 +4211,7 @@ MENU_UTILS = [
 ]
 
 # ==========================================
-# v6.0 ELITE PACK: THEMES + KILL-SWITCH + RAM GHOST + CHAIN REACTOR
+# v6.1 ELITE PACK: THEMES + KILL-SWITCH + RAM GHOST + CHAIN REACTOR
 # ==========================================
 THEMES = {
     'MATRIX': {'G1': (0,255,65),  'G2': (140,255,160), 'GD': (0,110,25),
@@ -4354,7 +4414,7 @@ def zero_click_chain_reactor():
             continue
     server = ''
     try:
-        req = urllib.request.Request(f'https://{target}', headers={'User-Agent': 'NetherX/6.0'})
+        req = urllib.request.Request(f'https://{target}', headers={'User-Agent': 'NetherX/6.1'})
         with urllib.request.urlopen(req, timeout=6) as r:
             server = r.headers.get('Server', '')
     except Exception:
@@ -4420,7 +4480,7 @@ def supply_chain_guard():
                 risk.append(f'TYPOSQUAT of "{pop}"'); break
         meta = None
         try:
-            req = urllib.request.Request(f'https://pypi.org/pypi/{pkg}/json', headers={'User-Agent': 'NetherX/6.0'})
+            req = urllib.request.Request(f'https://pypi.org/pypi/{pkg}/json', headers={'User-Agent': 'NetherX/6.1'})
             with urllib.request.urlopen(req, timeout=10) as resp:
                 meta = json.loads(resp.read().decode())
         except Exception:
@@ -4438,7 +4498,7 @@ def supply_chain_guard():
             osv_bad = 0
             try:
                 payload = json.dumps({'package': {'ecosystem': 'PyPI', 'name': pkg}}).encode()
-                req = urllib.request.Request('https://api.osv.dev/v1/query', data=payload, headers={'Content-Type': 'application/json', 'User-Agent': 'NetherX/6.0'})
+                req = urllib.request.Request('https://api.osv.dev/v1/query', data=payload, headers={'Content-Type': 'application/json', 'User-Agent': 'NetherX/6.1'})
                 with urllib.request.urlopen(req, timeout=10) as resp:
                     osv_bad = len(json.loads(resp.read().decode()).get('vulns', []))
             except Exception:
@@ -4566,6 +4626,466 @@ MENU_APT = [
 ]
 
 # ==========================================
+# v6.1 SECURITY LAB: 81-85
+# ==========================================
+import urllib.parse as _urlparse
+
+# ---------- 81. EMAIL HEADER FORENSICS ----------
+def email_header_forensics():
+    print_section('EMAIL HEADER FORENSICS (Phishing Postmortem)')
+    print_info('Paste the FULL email header. End with a blank line.')
+    lines = []
+    while True:
+        try:
+            ln = input('  | ')
+        except EOFError:
+            break
+        if not ln.strip():
+            if lines: break
+            continue
+        lines.append(ln.rstrip('\n'))
+        if len(lines) > 500: break
+    unfolded = re.sub(r'\n[ \t]+', ' ', '\n'.join(lines))
+    hdrs = []
+    for ln in unfolded.split('\n'):
+        if not ln.strip(): continue
+        m = re.match(r'([A-Za-z0-9-]+):\s*(.*)', ln)
+        if m: hdrs.append((m.group(1).lower(), m.group(2).strip()))
+        elif hdrs: hdrs[-1] = (hdrs[-1][0], hdrs[-1][1] + ' ' + ln.strip())
+    def getall(k): return [v for kk, v in hdrs if kk == k]
+    def getone(k): return getall(k)[0] if getall(k) else ''
+    hops, origin_ip = [], None
+    for r in getall('received'):
+        frm = re.search(r'from\s+([A-Za-z0-9._-]+)', r)
+        by = re.search(r'by\s+([A-Za-z0-9._-]+)', r)
+        ipm = re.findall(r'\b(?:\d{1,3}\.){3}\d{1,3}\b', r)
+        hops.append((frm.group(1) if frm else '?', by.group(1) if by else '?', ipm[0] if ipm else None))
+        if ipm and not origin_ip: origin_ip = ipm[0]
+    xip = re.findall(r'\b(?:\d{1,3}\.){3}\d{1,3}\b', getone('x-originating-ip'))
+    if xip and not origin_ip: origin_ip = xip[0]
+    auth = getone('authentication-results').lower()
+    spf = re.search(r'spf\s*=\s*(\w+)', auth)
+    dkim = re.search(r'dkim\s*=\s*(\w+)', auth)
+    dmarc = re.search(r'dmarc\s*=\s*(\w+)', auth)
+    from_dom = re.search(r'@([A-Za-z0-9.-]+)', getone('from'))
+    from_dom = from_dom.group(1).lower().strip('>') if from_dom else '?'
+    ret_dom = re.search(r'@([A-Za-z0-9.-]+)', getone('return-path'))
+    ret_dom = ret_dom.group(1).lower().strip('>') if ret_dom else '?'
+    print_section('DELIVERY PATH (oldest -> newest)')
+    for i, (f, b, ip) in enumerate(reversed(hops), 1):
+        print(f"  [{i}] {CYAN}{f}{RESET} -> {b}" + (f"  (IP: {YELLOW}{ip}{RESET})" if ip else ''))
+    if not hops: print_warn('No Received hops found!')
+    print_section('AUTHENTICATION & SPOOF ANALYSIS')
+    score, findings = 0, []
+    for name, obj, w in [('SPF', spf, 30), ('DKIM', dkim, 15), ('DMARC', dmarc, 25)]:
+        v = obj.group(1) if obj else 'none'
+        col = GREEN if v == 'pass' else RED if v in ('fail', 'softfail') else YELLOW
+        print(f"  {name}: {col}{v}{RESET}")
+        if v in ('fail', 'softfail'): score += w; findings.append(f'{name} FAILED')
+        elif v == 'none': score += w // 2; findings.append(f'{name} missing')
+    if from_dom != ret_dom and ret_dom != '?':
+        score += 20; findings.append(f'From domain ({from_dom}) != Return-Path ({ret_dom})')
+    if not hops: score += 10; findings.append('No Received trail')
+    geo_line = ''
+    if origin_ip:
+        print(f"  Origin IP: {YELLOW}{origin_ip}{RESET}")
+        try:
+            req = urllib.request.Request(f'http://ip-api.com/json/{origin_ip}?fields=country,city,isp,proxy,hosting', headers={'User-Agent': 'NetherX/6.1'})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                d = json.loads(resp.read().decode())
+            geo_line = f"{d.get('city')}, {d.get('country')} | {d.get('isp')}"
+            print(f"  Geo: {geo_line}")
+            if d.get('proxy') or d.get('hosting'):
+                score += 15; findings.append('Origin IP is hosting/proxy (bulk-sender infra)')
+        except Exception:
+            pass
+    print_section('VERDICT')
+    col = RED if score >= 50 else YELLOW if score >= 25 else GREEN
+    print(f"  Spoof Risk Score: {col}{BOLD}{score}/100{RESET}")
+    for fnd in findings: print(f"  {RED}[!]{RESET} {fnd}")
+    if not findings: print_success('Headers look authentic.')
+    log_finding('Email Forensics', 'HIGH' if score >= 50 else 'LOW', f'{from_dom} score {score}')
+    try:
+        ai_assess(f"Email from {from_dom}, score {score}/100, findings: {', '.join(findings) or 'none'}, origin: {geo_line}. Is this phishing? 3-line verdict.")
+    except Exception as e:
+        print_error(f'AI analysis failed: {e}')
+
+# ---------- 82. QR PHISHING SCANNER (QUISHING) ----------
+def qr_phishing_scanner():
+    print_section('QR PHISHING SCANNER (Quishing)')
+    print(' 1. Decode QR image file (OpenCV)')
+    print(' 2. Paste URL extracted from QR')
+    ch = get_input(f"{BOLD}Select (1-2): {RESET}")
+    url = ''
+    if ch == '1':
+        path = get_input(f"{BOLD}Enter image path: {RESET}")
+        if not path or not os.path.exists(path): print_error('File not found.'); return
+        try:
+            import cv2
+            img = cv2.imread(path)
+            data, _, _ = cv2.QRCodeDetector().detectAndDecode(img)
+            url = data
+            if not url: print_error('No QR detected in image.'); return
+            print_success(f'Decoded: {url}')
+        except Exception as e:
+            print_error(f'QR decode failed ({e}). Use Option 2.'); return
+    else:
+        url = get_input(f"{BOLD}Enter URL: {RESET}")
+    if not url: print_error('No URL.'); return
+    issues = []
+    u = _urlparse.urlparse(url)
+    host = (u.hostname or '').lower()
+    if u.scheme == 'http': issues.append('Plain HTTP (no TLS)')
+    if re.fullmatch(r'(?:\d{1,3}\.){3}\d{1,3}', host): issues.append('Raw IP host')
+    if '@' in url.split('//', 1)[-1]: issues.append('@ credential trick')
+    if host.startswith('xn--'): issues.append('Punycode homograph domain')
+    if len(url) > 75: issues.append('Excessive URL length')
+    if host.count('-') >= 3: issues.append('Many hyphens (lookalike)')
+    SHORT = ['bit.ly','tinyurl.com','t.co','cutt.ly','is.gd','rb.gy','goo.gl','s.id','rebrand.ly','yip.su','grabify.link','iplogger.org','2no.co','bmw5.eu']
+    if any(host == s or host.endswith('.' + s) for s in SHORT): issues.append('Shortener/tracker hides destination')
+    OFFICIAL = {'paypal':'paypal.com','microsoft':'microsoft.com','apple':'apple.com','amazon':'amazon.com','google':'google.com','facebook':'facebook.com','binance':'binance.com','coinbase':'coinbase.com','netflix':'netflix.com','instagram':'instagram.com','whatsapp':'whatsapp.com'}
+    for b, off in OFFICIAL.items():
+        if b in host and not (host == off or host.endswith('.' + off)):
+            issues.append(f'Brand impersonation: "{b}" in {host}'); break
+    print_section('REDIRECT CHASE')
+    chain = [url]
+    nxt = url
+    class NoRedir(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, *a, **k): return None
+    for _ in range(6):
+        try:
+            req = urllib.request.Request(nxt, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
+            urllib.request.build_opener(NoRedir).open(req, timeout=8)
+            break
+        except urllib.error.HTTPError as e:
+            loc = e.headers.get('Location')
+            if e.code in (301,302,303,307,308) and loc:
+                chain.append(loc); nxt = loc
+            else: break
+        except Exception:
+            break
+    for i, c in enumerate(chain, 1): print(f"  [{i}] {CYAN}{c[:95]}{RESET}")
+    fh = (_urlparse.urlparse(chain[-1]).hostname or '').lower()
+    if fh and fh != host: issues.append(f'Redirects to different domain: {fh}')
+    print_section('QUISH VERDICT')
+    if issues:
+        col = RED if len(issues) >= 2 else YELLOW
+        print(f"  {col}{BOLD}[!] MALICIOUS INDICATORS: {len(issues)}{RESET}")
+        for x in issues: print(f"    {RED}- {x}{RESET}")
+        log_finding('Quishing', 'HIGH', f'{host}: ' + '; '.join(issues))
+    else:
+        print_success('No quishing indicators found.')
+    try:
+        ai_assess(f"QR-delivered URL chain: {' -> '.join(chain[:4])}. Indicators: {', '.join(issues) or 'none'}. Phishing? 2-line verdict.")
+    except Exception as e:
+        print_error(f'AI analysis failed: {e}')
+
+# ---------- 83. APK MALWARE ANALYZER ----------
+def apk_malware_analyzer():
+    print_section('APK MALWARE ANALYZER (Static)')
+    path = get_input(f"{BOLD}Enter APK file path: {RESET}")
+    if not path or not os.path.exists(path): print_error('File not found.'); return
+    import zipfile, math
+    from collections import Counter
+    size = os.path.getsize(path)
+    with open(path, 'rb') as f:
+        data = f.read(min(size, 300 * 1024 * 1024))
+    score, findings = 0, []
+    try:
+        z = zipfile.ZipFile(path)
+        names = z.namelist()
+    except Exception:
+        print_error('Not a valid APK/ZIP.'); return
+    dex = [n for n in names if n.endswith('.dex')]
+    sos = [n for n in names if n.endswith('.so')]
+    print(f"  Files: {len(names)} | DEX: {len(dex)} | Native libs: {len(sos)}")
+    PACKERS = {'libjiagu.so': '360 Jiagu packer', 'libtup.so': 'Tencent Legu', 'libDexHelper.so': 'Bangcle', 'libstub.so': 'Baidu packer', 'lib360.so': '360', 'libmobsec.so': 'MobSec'}
+    pk = [PACKERS[s] for s in sos if os.path.basename(s) in PACKERS]
+    if pk: score += 15 * len(pk); findings.append('PACKER/PROTECTOR: ' + ', '.join(pk) + ' (code hidden!)')
+    PERMS = ['SEND_SMS','READ_SMS','RECEIVE_SMS','READ_CONTACTS','READ_CALL_LOG','CALL_PHONE','RECORD_AUDIO','CAMERA','ACCESS_FINE_LOCATION','READ_PHONE_STATE','RECEIVE_BOOT_COMPLETED','SYSTEM_ALERT_WINDOW','REQUEST_INSTALL_PACKAGES','GET_ACCOUNTS','WRITE_SETTINGS']
+    found_perms = [p for p in PERMS if p.encode('utf-16-le') in data]
+    score += 3 * len(found_perms)
+    print_section('DANGEROUS PERMISSIONS')
+    for p in found_perms: print(f"  {RED}[!]{RESET} android.permission.{p}")
+    if not found_perms: print_success('No dangerous permissions.')
+    urls = []
+    cnt = 0
+    for m in re.finditer(rb'https?://[A-Za-z0-9./?=&%_#-]{6,90}', data):
+        u = m.group(0).decode(errors='ignore')
+        if u not in urls: urls.append(u)
+        cnt += 1
+        if cnt > 300: break
+    http_only = [u for u in urls if u.startswith('http://')]
+    score += 2 * len(http_only)
+    ips = list({m.group(0).decode() for m in list(re.finditer(rb'\b(?:\d{1,3}\.){3}\d{1,3}\b', data))[:60]})
+    KWS = [b'DexClassLoader', b'getRuntime().exec', b'/system/bin/sh', b'cmd.exe', b'powershell', b'.onion', b'content://sms', b'loadDex', b'Runtime/exec']
+    kw_hits = [k.decode() for k in KWS if k in data]
+    score += 4 * len(kw_hits)
+    def _ent(b):
+        if not b: return 0.0
+        c = Counter(b); n = len(b)
+        return -sum((v / n) * math.log2(v / n) for v in c.values())
+    big = sorted([n for n in names if not n.endswith(('.dex', '.so')) and '/' in n], key=lambda n: z.getinfo(n).file_size, reverse=True)[:3]
+    hi_ent = []
+    for n in big:
+        e = _ent(z.read(n)[:65536])
+        if e > 7.5: hi_ent.append(f'{n} ({e:.2f})')
+    score += 5 * len(hi_ent)
+    print_section('EMBEDDED INDICATORS')
+    print(f"  URLs found: {len(urls)} | plain-HTTP: {RED}{len(http_only)}{RESET} | raw IPs: {len(ips)}")
+    for u in (http_only + [x for x in urls if '.onion' in x])[:8]: print(f"    {RED}{u}{RESET}")
+    if kw_hits: print(f"  Code tricks: {YELLOW}{', '.join(kw_hits)}{RESET}")
+    if hi_ent: print(f"  Packed/encrypted assets: {RED}{', '.join(hi_ent)}{RESET}")
+    print_section('RISK VERDICT')
+    col = RED if score >= 40 else YELLOW if score >= 20 else GREEN
+    lvl = 'CRITICAL' if score >= 40 else 'HIGH' if score >= 20 else 'MEDIUM' if score >= 8 else 'LOW'
+    print(f"  Risk: {col}{BOLD}{lvl} (score {score}){RESET}")
+    for fnd in findings: print(f"  {RED}[!]{RESET} {fnd}")
+    h = hashlib.sha256(data).hexdigest()
+    print(f"  SHA256: {GRAY}{h}{RESET}  (verify this hash with Option 59 - VirusTotal)")
+    log_finding('APK Analyzer', lvl, f'{os.path.basename(path)} score {score}')
+    try:
+        ai_assess(f"APK static report: perms={found_perms}, packers={pk}, http_urls={http_only[:5]}, tricks={kw_hits}, packed_assets={hi_ent}. Malware likelihood? 3-line verdict.")
+    except Exception as e:
+        print_error(f'AI analysis failed: {e}')
+
+# ---------- 84. ONE-CLICK HACKING LAB ----------
+def one_click_hacking_lab():
+    print_section('ONE-CLICK HACKING LAB (localhost only)')
+    import http.server, sqlite3, threading
+    LAB_DB = sqlite3.connect(':memory:', check_same_thread=False)
+    LAB_LOCK = threading.Lock()
+    with LAB_LOCK:
+        LAB_DB.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, role TEXT)")
+        LAB_DB.executemany("INSERT INTO users (username,password,role) VALUES (?,?,?)",
+                           [('admin', 'Sup3rS3cret!', 'admin'), ('alice', 'alice123', 'user'), ('bob', 'bob123', 'user')])
+        LAB_DB.commit()
+
+    LAB_CSS = """
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Consolas,monospace;background:#0a0f0d;color:#d8ffe0;min-height:100vh;background-image:radial-gradient(circle at 20% 10%,rgba(0,255,120,.07),transparent 40%),radial-gradient(circle at 80% 90%,rgba(0,255,120,.05),transparent 40%)}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:14px 32px;background:rgba(0,20,10,.9);border-bottom:1px solid #00ff8833;backdrop-filter:blur(6px);position:sticky;top:0;z-index:9}
+.logo{font-weight:800;font-size:20px;color:#00ff88;text-shadow:0 0 12px #00ff8866;letter-spacing:1px}
+.logo span{color:#fff}
+.nav a{color:#9fd8b4;text-decoration:none;margin-left:18px;font-size:14px}
+.nav a:hover{color:#00ff88}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px}
+.hero{text-align:center;padding:56px 20px 20px}
+.hero h1{font-size:44px;color:#00ff88;text-shadow:0 0 25px #00ff8855;margin-bottom:10px}
+.hero p{color:#8fbf9f;font-size:15px}
+.badge{display:inline-block;margin-top:16px;padding:6px 18px;border:1px solid #00ff8855;border-radius:20px;color:#00ff88;font-size:12px;background:#00ff8811}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:18px;margin:34px 0}
+.card{background:#0e1713;border:1px solid #1d3a2a;border-radius:12px;padding:22px;transition:.25s;position:relative}
+.card:hover{transform:translateY(-4px);border-color:#00ff8888;box-shadow:0 10px 30px rgba(0,255,136,.12)}
+.card h3{color:#00ff88;margin-bottom:8px;font-size:16px}
+.card p{color:#8fbf9f;font-size:13px;line-height:1.6;margin-bottom:16px}
+.card a{color:#0a0f0d;background:#00ff88;padding:7px 18px;border-radius:6px;text-decoration:none;font-weight:700;font-size:13px}
+.card a:hover{background:#5cffb0}
+.sev{position:absolute;top:14px;right:14px;font-size:10px;padding:3px 10px;border-radius:12px;font-weight:700}
+.sev.crit{background:#ff444422;color:#ff5555;border:1px solid #ff555555}
+.sev.high{background:#ffaa0022;color:#ffcc55;border:1px solid #ffcc5555}
+.panel{background:#0e1713;border:1px solid #1d3a2a;border-radius:12px;padding:32px}
+.panel h2{color:#00ff88;margin-bottom:20px}
+input{width:100%;padding:12px 14px;margin-bottom:14px;background:#0a0f0d;border:1px solid #1d3a2a;border-radius:8px;color:#d8ffe0;font-size:14px;outline:none}
+input:focus{border-color:#00ff88;box-shadow:0 0 8px #00ff8833}
+button{width:100%;padding:12px;background:linear-gradient(90deg,#00ff88,#00cc6a);border:none;border-radius:8px;color:#0a0f0d;font-weight:800;font-size:14px;cursor:pointer}
+button:hover{filter:brightness(1.15)}
+.alert{margin-top:16px;padding:14px;border-radius:8px;font-size:13px}
+.alert.err{background:#ff444415;border:1px solid #ff555544;color:#ff8888}
+.alert.ok{background:#00ff8815;border:1px solid #00ff8844;color:#7dffc4}
+pre{background:#060a08;border:1px solid #1d3a2a;border-radius:8px;padding:14px;color:#7dffc4;font-size:13px;overflow:auto;margin-top:14px}
+table{width:100%;border-collapse:collapse;margin-top:14px}
+td,th{border:1px solid #1d3a2a;padding:10px;text-align:left;font-size:13px}
+th{background:#0a1410;color:#00ff88}
+.foot{text-align:center;color:#4a7a5c;font-size:12px;padding:34px 0}
+code{color:#ffcc55;background:#060a08;padding:2px 6px;border-radius:4px}
+"""
+
+    def page(title, body):
+        return f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>{title} | NetherX Lab</title><style>{LAB_CSS}</style></head>
+<body><div class="nav"><div class="logo">NETHER<span>X</span> LAB</div><div><a href="/">Home</a><a href="/login">Login</a><a href="/ping">Ping</a><a href="/api/user?id=1">API</a><a href="/robots.txt">robots</a></div></div>
+{body}<div class="foot">NetherX Hacking Lab — authorized training environment — 127.0.0.1 only</div></body></html>"""
+
+    class LabHandler(http.server.BaseHTTPRequestHandler):
+        def log_message(self, *a): pass
+        def _send(self, body, code=200, ctype='text/html', cookie=None):
+            b = body.encode()
+            self.send_response(code)
+            self.send_header('Content-Type', ctype + '; charset=utf-8')
+            self.send_header('Content-Length', str(len(b)))
+            if cookie:
+                self.send_header('Set-Cookie', cookie)
+            self.end_headers()
+            self.wfile.write(b)
+        def do_GET(self):
+            p = _urlparse.urlparse(self.path)
+            q = {k: v[0] for k, v in _urlparse.parse_qs(p.query).items()}
+            if p.path == '/':
+                name = q.get('name', '')
+                xss = f'<div class="wrap"><div class="alert ok">Welcome, {name}!</div></div>' if name else ''
+                body = f"""<div class="hero"><h1>&gt;_ NetherX Hacking Lab</h1>
+<p>Intentionally vulnerable web app — practice SQLi, XSS, IDOR, Cmdi & info-leaks.</p>
+<span class="badge">🔒 LOCALHOST ONLY — 100% LEGAL</span></div>
+<div class="wrap"><div class="grid">
+<div class="card"><span class="sev crit">CRITICAL</span><h3>SQL Injection</h3><p>Bypass the login with: <code>' OR '1'='1' --</code></p><a href="/login">Attack</a></div>
+<div class="card"><span class="sev high">HIGH</span><h3>XSS Reflected</h3><p>Inject a script into the name input.</p><a href="/?name=<script>alert(1)</script>">Attack</a></div>
+<div class="card"><span class="sev crit">CRITICAL</span><h3>IDOR</h3><p>Read any user's data + password.</p><a href="/api/user?id=1">Attack</a></div>
+<div class="card"><span class="sev high">HIGH</span><h3>Info Leak</h3><p>Hidden backup exposed via robots.txt.</p><a href="/robots.txt">Attack</a></div>
+<div class="card"><span class="sev high">HIGH</span><h3>Command Injection</h3><p>Chain commands into the ping service.</p><a href="/ping">Attack</a></div>
+</div></div>{xss}"""
+                self._send(page('Home', body))
+            elif p.path == '/login':
+                user, pw = q.get('user'), q.get('pass')
+                alert = ''
+                rows = []
+                if user is not None or pw is not None:
+                    user, pw = user or '', pw or ''
+                    try:
+                        with LAB_LOCK:
+                            rows = LAB_DB.execute(f"SELECT username, role FROM users WHERE username='{user}' AND password='{pw}'").fetchall()
+                        if rows:
+                            alert = f'<div class="alert ok">✔ Logged in as <b>{rows[0][0]}</b> ({rows[0][1]}) — SQLi bypass or real creds? Now open <a href="/admin" style="color:#00ff88">/admin</a>.</div>'
+                        else:
+                            alert = '<div class="alert err">✖ 401 Unauthorized — bad credentials.</div>'
+                    except Exception as e:
+                        alert = f'<div class="alert err">SQL error: {e} ← this verbose error is itself a bug (info leak)!</div>'
+                body = f"""<div class="wrap"><div class="panel" style="max-width:480px;margin:60px auto">
+<h2>🔐 Staff Login</h2>
+<form method="get" id="lf"><input name="user" placeholder="Username">
+<input name="pass" type="password" placeholder="Password"><button>Login</button></form>
+<button type="button" onclick="fillSqli()" style="margin-top:12px;background:#1d3a2a;color:#00ff88;border:1px solid #00ff8855;width:100%;padding:10px;border-radius:8px;cursor:pointer;font-weight:700">⚡ AUTO-FILL SQLi PAYLOAD</button>
+{alert}
+<pre>Full payload: ' OR '1'='1' --
+(Incomplete payload = SQL syntax error = verbose error info-leak demo)</pre>
+<script>function fillSqli(){{var f=document.getElementById('lf');f.user.value="' OR '1'='1' --";f.pass.value="x";}}</script></div></div>"""
+                self._send(page('Login', body), cookie=('nx_session=admin123; Path=/' if rows else None))
+            elif p.path == '/admin':
+                ck = self.headers.get('Cookie', '')
+                if 'nx_session=' in ck:
+                    with LAB_LOCK:
+                        rows = LAB_DB.execute("SELECT id, username, role FROM users").fetchall()
+                    tr = ''.join(f'<tr><td>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td></tr>' for r in rows)
+                    body = f"""<div class="wrap"><div class="panel" style="margin:60px auto;max-width:700px">
+<h2>🛡️ Admin Dashboard</h2>
+<table><tr><th>ID</th><th>User</th><th>Role</th></tr>{tr}</table>
+<div class="alert ok">✔ Session valid — welcome, admin.</div></div></div>"""
+                    self._send(page('Admin', body))
+                else:
+                    self._send(page('403', '<div class="wrap"><div class="alert err" style="margin:60px auto;max-width:520px">🚫 403 Forbidden — admin area. Login first (try the SQLi!).</div></div>'), 403)
+            elif p.path == '/ping':
+                ip = q.get('ip', '')
+                out = ''
+                if ip:
+                    if re.search(r'[;|&`$]', ip):
+                        out = f'<div class="alert err">⚠ Simulated RCE! Server would execute: <b>ping {ip}</b></div>'
+                    else:
+                        out = f'<pre>ping {ip}: 4 replies, 12ms avg (simulated)</pre>'
+                body = f"""<div class="wrap"><div class="panel" style="max-width:560px;margin:60px auto">
+<h2>📡 Network Ping</h2>
+<form method="get" id="pf"><input name="ip" placeholder="IP address"><button>Ping</button></form>
+<button type="button" onclick="fillCmdi()" style="margin-top:12px;background:#1d3a2a;color:#00ff88;border:1px solid #00ff8855;width:100%;padding:10px;border-radius:8px;cursor:pointer;font-weight:700">⚡ AUTO-FILL CMDi PAYLOAD</button>
+{out}
+<pre>Hint: 127.0.0.1; whoami</pre>
+<script>function fillCmdi(){{document.getElementById('pf').ip.value="127.0.0.1; whoami";}}</script></div></div>"""
+                self._send(page('Ping', body))
+            elif p.path == '/robots.txt':
+                self._send("User-agent: *\nDisallow: /admin\nDisallow: /backup/users.json", ctype='text/plain')
+            elif p.path == '/backup/users.json':
+                with LAB_LOCK:
+                    rows = LAB_DB.execute("SELECT username,password,role FROM users").fetchall()
+                self._send(json.dumps(rows, indent=2), ctype='application/json')
+            elif p.path == '/api/user':
+                with LAB_LOCK:
+                    row = LAB_DB.execute("SELECT username,password,role FROM users WHERE id=?", (q.get('id', '1'),)).fetchone()
+                self._send(json.dumps(row) if row else '{}', ctype='application/json')
+            else:
+                self._send(page('404', '<div class="wrap"><div class="alert err" style="margin:60px auto;max-width:520px">404 Not Found</div></div>'), 404)
+
+    port = 8888
+    try:
+        srv = http.server.ThreadingHTTPServer(('127.0.0.1', port), LabHandler)
+    except OSError:
+        port = 8889
+        srv = http.server.ThreadingHTTPServer(('127.0.0.1', port), LabHandler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    print_success(f'Lab LIVE: http://127.0.0.1:{port} (localhost only - 100% legal)')
+    print_section('PRACTICE MISSIONS')
+    print(f"  {RED}[1] SQLi:{RESET}       /login -> user: ' OR '1'='1' --")
+    print(f"  {RED}[2] XSS:{RESET}        /?name=<script>alert(1)</script>")
+    print(f"  {RED}[3] Cmdi:{RESET}       /ping?ip=127.0.0.1;whoami")
+    print(f"  {YELLOW}[4] Info leak:{RESET}  /robots.txt -> /backup/users.json")
+    print(f"  {YELLOW}[5] IDOR:{RESET}       /api/user?id=1..3")
+    print(f"  {CYAN}[6] Admin:{RESET}       login first, then open /admin (session cookie)")
+    get_input(f"{BOLD}Press Enter to STOP lab... {RESET}")
+    srv.shutdown()
+    print_success('Lab stopped.')
+
+# ---------- 85. WIFI HANDSHAKE AUDITOR ----------
+def wifi_handshake_auditor():
+    print_section('WIFI HANDSHAKE AUDITOR (own network only)')
+    print(' 1. Analyze a capture file (.cap / .pcap)')
+    print(' 2. Capture guide (Linux + monitor mode)')
+    ch = get_input(f"{BOLD}Select (1-2): {RESET}")
+    if ch == '2':
+        print_section('CAPTURE GUIDE (AUTHORIZED - YOUR OWN WIFI ONLY)')
+        for c in ['airmon-ng start wlan0mon', 'airodump-ng wlan0mon   (note your BSSID + channel)',
+                  'airodump-ng -c <CH> --bssid <BSSID> -w capture wlan0mon',
+                  'aireplay-ng --deauth 5 -a <BSSID> wlan0mon  (force a handshake)',
+                  'Ctrl+C -> capture-01.cap is ready']:
+            print(f"  {GREEN}${RESET} {c}")
+        print_warn('Test ONLY on your own router - unauthorized use is illegal.')
+        return
+    path = get_input(f"{BOLD}Enter capture file path: {RESET}")
+    if not path or not os.path.exists(path): print_error('File not found.'); return
+    import struct
+    with open(path, 'rb') as f:
+        data = f.read()
+    if len(data) < 24 or data[:4] not in (b'\xd4\xc3\xb2\xa1', b'\xa1\xb2\xc3\xd4', b'\xd4\xc3\xb2\xa2', b'\xa2\xb2\xc3\xd4'):
+        print_error('Not a valid pcap file.'); return
+    le = data[:4] in (b'\xd4\xc3\xb2\xa1', b'\xd4\xc3\xb2\xa2')
+    lt = struct.unpack('<I' if le else '>I', data[20:24])[0]
+    def mac(b): return ':'.join(f'{x:02X}' for x in b)
+    off, eapol, macs, count = 24, 0, set(), 0
+    while off + 16 <= len(data) and count < 300000:
+        clen = struct.unpack('<I' if le else '>I', data[off+8:off+12])[0]
+        pkt = data[off+16:off+16+clen]
+        off += 16 + clen; count += 1
+        body = pkt
+        if lt == 105 and len(pkt) >= 4:
+            rl = struct.unpack('<H', pkt[2:4])[0]
+            body = pkt[rl:]
+        idx = body.find(b'\x88\x8e')
+        if idx != -1:
+            eapol += 1
+            if lt == 105 and len(body) >= 24:
+                macs.update([mac(body[4:10]), mac(body[10:16]), mac(body[16:22])])
+            elif lt == 1 and len(body) >= 14:
+                macs.update([mac(body[0:6]), mac(body[6:12])])
+    print_section('HANDSHAKE ANALYSIS')
+    print(f"  Packets scanned: {count} | Link type: {'802.11' if lt == 105 else 'Ethernet' if lt == 1 else lt}")
+    print(f"  EAPOL frames: {YELLOW}{eapol}{RESET}")
+    if eapol >= 4: print(f"  {GREEN}[+] Full 4-way handshake LIKELY captured!{RESET}")
+    elif eapol >= 1: print_warn('Partial handshake - retry with deauth.')
+    else: print_warn('No EAPOL frames - handshake not captured.')
+    if macs: print(f"  Devices involved: {', '.join(sorted(macs)[:6])}")
+    print_section('OFFLINE STRENGTH TEST (own router only)')
+    print(f"  {GREEN}${RESET} aircrack-ng -w wordlist.txt capture-01.cap")
+    print(f"  {GREEN}${RESET} hashcat -m 22000 hash.hc22000 rockyou.txt")
+    print_warn('Test your own router password, then set a strong WPA3 passphrase.')
+    try:
+        ai_assess(f"WiFi capture: {eapol} EAPOL frames, {count} packets. Explain handshake completeness and 3 hardening tips for home WiFi. Concise.")
+    except Exception as e:
+        print_error(f'AI analysis failed: {e}')
+
+MENU_V61 = [
+    ("81", CYAN,    "Email Forensics"),
+    ("82", YELLOW,  "QR Quish Scan"),
+    ("83", RED,     "APK Analyzer"),
+    ("84", GREEN,   "Hacking Lab"),
+    ("85", MAGENTA, "WiFi Handshake"),
+]
+
+# ==========================================
 # MAIN LOOP
 # ==========================================
 
@@ -4574,7 +5094,7 @@ def main():
     get_input(f"{BOLD}Press Enter to launch NetherX...{RESET}")
     while True:
         show_menu()
-        choice = get_input(f"\n{G1}NetherX@CyberSecurity:~${RESET} {BOLD}{G2}select (1-80){RESET} {G1}❯{RESET} ")
+        choice = get_input(f"\n{G1}NetherX@CyberSecurity:~${RESET} {BOLD}{G2}select (1-85){RESET} {G1}❯{RESET} ")
         if choice is None:
             print(f"\n{GREEN}[*] Exiting System. Stay Safe!{RESET}")
             sys.exit(0)
@@ -4608,7 +5128,7 @@ def main():
             continue
 
         # Options that don't need sandbox
-        no_sandbox_options = {'6', '11', '14', '15', '18', '19', '20', '21', '22', '25', '26', '27', '28', '30', '33', '35', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '49', '50', '51', '54', '57', '59', '60', '61', '62', '63', '69', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '80'}
+        no_sandbox_options = {'6', '11', '14', '15', '18', '19', '20', '21', '22', '25', '26', '27', '28', '30', '33', '35', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '49', '50', '51', '54', '57', '59', '60', '61', '62', '63', '69', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '80', '81', '82', '83', '84', '85'}
 
         if choice in no_sandbox_options:
             try:
@@ -4714,6 +5234,16 @@ def main():
                     ransom_defense_suite()
                 elif choice == '80':
                     kill_chain_visualizer()
+                elif choice == '81':
+                    email_header_forensics()
+                elif choice == '82':
+                    qr_phishing_scanner()
+                elif choice == '83':
+                    apk_malware_analyzer()
+                elif choice == '84':
+                    one_click_hacking_lab()
+                elif choice == '85':
+                    wifi_handshake_auditor()
             except Exception as e:
                 print_error(f'Option {choice} failed: {e}')
             press_enter()
