@@ -16,7 +16,7 @@
 <img width="537" height="680" alt="Screenshot 2026-08-23 182257" src="https://github.com/user-attachments/assets/61cb7f37-dcdd-490c-aeab-97e104a28547" />
 
 
-*80 security modules. One terminal. AI-powered analysis. Cloud-isolated execution.*
+*85 security modules. One terminal. AI-powered analysis. Cloud-isolated execution.*
 
 </div>
 
